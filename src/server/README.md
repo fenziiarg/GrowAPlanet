@@ -1,1 +1,1 @@
-Server gameplay begins in Phase 1. ProfileStore is server-only in ServerStorage.
+Main starts the resource/save service. ProfileStore is server-only; no unavailable-data fallback grants a playable profile.

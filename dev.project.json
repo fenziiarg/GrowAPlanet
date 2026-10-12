@@ -35,7 +35,13 @@
         "TestEZ": {
           "$path": "DevPackages/_Index/roblox_testez@0.4.1/testez/src"
         },
-        "$className": "Folder"
+        "$className": "Folder",
+        "Specs": {
+          "$path": "tests/specs"
+        },
+        "Debug": {
+          "$path": "tests/Debug.luau"
+        }
       }
     },
     "StarterPlayer": {

@@ -1,0 +1,36 @@
+Test results:
+[+] Specs
+   [+] Core
+      [+] adds numbers across exponents without mutating inputs
+      [+] awards exactly one configured click
+      [+] caps refilled tokens at burst capacity
+      [+] catches a throwing loader without granting a session
+      [+] creates seven independent zero balances
+      [+] does not create or overwrite data after a failed load
+      [+] formats 1.5K
+      [+] formats 2.3M
+      [+] formats 2Qi
+      [+] formats 4B
+      [+] formats 7T
+      [+] formats 999
+      [+] formats 9Qa
+      [+] formats scientific values beyond native floating-point range
+      [+] integrates fractional elapsed time and keeps unearned resources zero
+      [+] limits bursts and refills by server time
+      [+] multiplies large values without infinity
+      [+] produces the same result for subdivided time
+      [+] promotes rounding across a suffix boundary
+      [+] rejects invalid elapsed time without changing balances
+      [+] rejects malformed saved balances
+      [+] rejects negative nonfinite and out-of-range numbers
+      [+] rejects overdrafts
+      [+] rejects unknown schemas without reconciling defaults
+      [+] releases a late load when the player has left
+      [+] subtracts equal values to canonical zero
+26 passed, 0 failed, 0 skipped
+[GrowAPlanet:Phase1] TESTS_PASS passed=26 failed=0
+DataStoreService: StudioAccessToApisNotAllowed: Cannot write to DataStore from studio if API access is not enabled. API: SetAsync, Data Store: ____PS
+[ProfileStore]: Roblox API services unavailable - data will not be saved
+[GrowAPlanet] LOAD_FAILED data_services_unavailable; no default profile created
+Server Kick Message: Saving is unavailable. Please rejoin when data services are available.; Metadata:
+Character cannot be changed as Player ([redacted]) is being removed.

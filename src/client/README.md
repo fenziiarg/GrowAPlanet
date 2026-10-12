@@ -1,1 +1,1 @@
-Client gameplay and UI begin in later phases. No client-authoritative economy.
+The original minimal HUD displays authoritative snapshots and sends click intents. It never awards resources locally.

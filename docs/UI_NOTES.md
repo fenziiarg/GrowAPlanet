@@ -1,6 +1,6 @@
 # UI foundation decisions
 
-Phase 0 prepares the design foundation; no gameplay screens or interactive UI have been built.
+Phase 0 prepared the design foundation. Phase 1 adds an original minimal resource HUD and Growth Point button.
 
 ## Check-UI review
 
@@ -44,6 +44,8 @@ This keeps one cohesive visual style and avoids extra framework dependencies bef
 No paid resources, unknown-license images or upstream icon IDs are used. Any later external icon/font/kit
 must receive an individual manifest entry and preserved notice before use.
 
-Accessibility, responsive behavior and the resulting look remain untested until there is actual UI.
+Phase 1 uses a bounded scrolling resource panel, built-in Gotham fonts and a 56-pixel click/tap button.
+It shows only server-provided balances. No copied Check-UI code or external icon IDs are used.
+Device and interaction verification results are recorded in the Phase 1 report.
 
 Owner accepted the original Check-UI-inspired direction before Phase 1.

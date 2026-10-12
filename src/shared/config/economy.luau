@@ -1,20 +1,32 @@
 --!strict
 export type ResourceId =
-	"Population"
+	"GrowthPoints"
+	| "Population"
 	| "Food"
 	| "Materials"
 	| "Energy"
 	| "Money"
 	| "Research"
-	| "GrowthPoints"
-export type ResourceAmounts = { [ResourceId]: number }
-export type Definition = {
-	initialResources: ResourceAmounts,
-	clickGrowth: number,
-	clicksPerSecond: number,
-	offlineCapSeconds: number,
-}
-
--- Intentionally unpopulated in Phase 0. No economy is active.
-local definitions: { [string]: Definition } = {}
-return table.freeze(definitions)
+local ids: { ResourceId } =
+	{ "GrowthPoints", "Population", "Food", "Materials", "Energy", "Money", "Research" }
+local initial: { [string]: number } = {}
+local rates: { [string]: number } = {}
+for _, id in ids do
+	initial[id] = 0
+	rates[id] = 0
+end
+rates.GrowthPoints = 1
+return table.freeze({
+	resourceIds = table.freeze(ids),
+	initial = table.freeze(initial),
+	productionPerSecond = table.freeze(rates),
+	clickGrowth = 1,
+	clicksPerSecond = 8,
+	clickBurst = 8,
+	requestsPerSecond = 12,
+	requestBurst = 16,
+	snapshotInterval = 0.25,
+	tickInterval = 0.1,
+	logInterval = 5,
+	maxSimulationSeconds = 3600,
+})

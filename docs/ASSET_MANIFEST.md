@@ -28,3 +28,7 @@ Roblox type definitions come from JohnnyMorganz/luau-lsp tag 1.70.1 (MIT), downl
 with SHA-256 verification. They are only used for analysis, not mapped into the place.
 
 No external audio, textures, fonts, marketplace models or third-party UI images are included.
+
+Phase 1 UI: original source at src/client/Main.client.luau, authored for this project by Codex,
+using Roblox primitives and built-in Gotham fonts. No third-party runtime UI scripts or media imported.
+The Check-UI reference directory is now local/ignored at the owner's request; notes, source pin and licenses remain tracked.
