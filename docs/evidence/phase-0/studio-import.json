@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-12",
+  "placeId": 94365962623582,
+  "universeId": 10770529946,
+  "model": "Workspace.PipelineCube",
+  "meshId": "rbxassetid://128741790029501",
+  "descendants": 1,
+  "class": "MeshPart",
+  "scripts": 0,
+  "rawImportedSize": "200, 200.00003051757812, 200.00003051757812",
+  "calibratedSize": "2, 2, 2",
+  "anchored": true,
+  "uploadCheckbox": false,
+  "durableAssetAvailability": "not verified"
+}

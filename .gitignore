@@ -1,0 +1,9 @@
+.tools/
+build/
+Packages/
+DevPackages/
+ServerPackages/
+*.blend1
+*.blend2
+*.rbxl.lock
+sourcemap.json

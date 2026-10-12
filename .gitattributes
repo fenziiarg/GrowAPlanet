@@ -1,0 +1,8 @@
+* text=auto eol=lf
+vendor/** -whitespace
+docs/references/** -whitespace
+docs/licenses/** -whitespace
+*.blend binary
+*.fbx binary
+*.rbxl binary
+*.png binary

@@ -1,0 +1,66 @@
+# Setup — Phase 0
+
+Verified on Windows on 2026-10-12 in `C:\Users\matia\Projects\GrowAPlanet`.
+Git local author: fenziiarg <340811680+fenziiarg@users.noreply.github.com>.
+Origin: https://github.com/fenziiarg/GrowAPlanet.git. Existing repo and owner-confirmed isolated experience reused.
+
+## Versions
+
+| Tool | Verified version | Pin |
+|---|---|---|
+| Git | 2.56.0.windows.2 | Host installation |
+| Rokit | 1.2.0 | Host bootstrap |
+| Rojo | 7.7.1 | rokit.toml; Studio plugin 7.7.1 |
+| Wally | 0.3.2 | rokit.toml |
+| StyLua | 2.6.0 | rokit.toml |
+| Selene | 0.32.0 | rokit.toml |
+| luau-lsp | 1.70.1 | rokit.toml |
+| Lune | 0.10.5 | rokit.toml; available, not needed for Studio assertions |
+| Blender | 5.2.2 LTS | Host installation |
+| TestEZ | 0.4.1 | wally.toml + wally.lock |
+| ProfileStore | upstream 1.0.3 | commit 45c9847cbcf1fc260369c50eb335aba7c35aecdd |
+
+All tools were already installed; no global installation or global Git configuration was changed.
+On this machine Rokit resolves the pinned cached tools. On a new host, install free Rokit and run
+`rokit install` yourself (it writes its user tool cache), then `./scripts/bootstrap.ps1`.
+Bootstrap keeps Wally's cache inside `.tools/wally` and verifies the downloaded Roblox type definitions by SHA-256.
+ProfileStore is vendored from MadStudio's official repository, rather than relying on a third-party Wally fork.
+
+## Verification and synchronization
+
+`./scripts/check.ps1` checks authored Luau formatting, lint and strict types, builds release and development
+places, checks release isolation, and verifies ProfileStore's hash. Third-party source is not reformatted.
+luau-lsp's CLI may emit a nonfatal file-watcher registration warning.
+
+`./scripts/serve.ps1 -Development` serves only localhost:34872. Connect the Rojo plugin in the approved place.
+Both mappings restrict servePlaceIds to 94365962623582 and do not manage Workspace.
+The development map adds TestEZ's source directory and a Studio-only pipeline script. Play should print
+`[GrowAPlanet:Phase0] PIPELINE_PASS revision=2 configs=6 ProfileStore=server-only TestEZ=loaded`.
+The release mapping contains neither TestEZ nor the pipeline runner. Never publish a development build.
+Disconnect before switching projects. Studio source edits are not a replacement for repo edits.
+
+## Blender
+
+Run each command in a separate process from the repo:
+
+```powershell
+& 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe' --background --factory-startup --python assets/scripts/build_pipeline_cube.py
+& 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe' --background --factory-startup --python assets/scripts/verify_pipeline_cube.py
+```
+
+The first writes the original .blend and FBX; the second reopens the blend and independently reimports FBX.
+Studio's 3D importer accepted the FBX. Default conversion produced a 200-stud cube from 2 Blender units:
+apply a 0.01 scale in import settings for future exports, then inspect dimensions. The test instance was
+calibrated in Studio to 2 studs. This is a pipeline fixture, not production planet art.
+Upload was unchecked in the importer, but Studio returned a real rbxassetid; ownership/persistence of that
+ID has not been independently verified. Do not use it as a production asset. See the manifest.
+
+## Connections and limits
+
+Studio MCP: read/Edit execution, play/stop, server inspection and console output tested.
+Rojo: real filesystem-to-Studio sync and execution tested. Blender MCP: connected scene inspection;
+safe asset generation uses fresh background Blender processes instead of touching the interactive scene.
+GitHub: repository access verified; push status recorded in the phase report/chat.
+No physical mobile devices tested. Device simulator availability is not a UI/device acceptance test.
+Studio DataStore API access is unverified. ProfileStore is installed but deliberately not required in Phase 0:
+loading it can perform a Studio API probe write. No save/session-lock behavior has been tested yet.

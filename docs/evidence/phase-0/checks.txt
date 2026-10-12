@@ -1,0 +1,13 @@
+Results:
+0 errors
+0 warnings
+0 parse errors
+Created sourcemap at sourcemap.json
+[INFO] Loading definitions file: @roblox - .tools/globalTypes.d.luau
+[WARN] client does not allow didChangeWatchedFiles registration - automatic updating on sourcemap changes disabled
+[INFO] Loading Luau configuration from c:\Users\matia\Projects\GrowAPlanet\.luaurc
+Building project 'Grow a Planet'
+Built project to GrowAPlanet.rbxlx
+Building project 'Grow a Planet - Development'
+Built project to GrowAPlanet-Dev.rbxl
+PHASE0_CHECKS_PASS: formatting, lint, types, both builds, release isolation, vendor hash

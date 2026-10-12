@@ -1,0 +1,53 @@
+{
+  "name": "Grow a Planet - Development",
+  "servePlaceIds": [
+    94365962623582
+  ],
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$ignoreUnknownInstances": true,
+      "GrowAPlanet": {
+        "$path": "src/shared"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$ignoreUnknownInstances": true,
+      "GrowAPlanet": {
+        "$path": "src/server"
+      },
+      "GrowAPlanetPipeline": {
+        "$path": "tests/Pipeline.server.luau"
+      }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "$ignoreUnknownInstances": true,
+      "GrowAPlanetDependencies": {
+        "$className": "Folder",
+        "ProfileStore": {
+          "$path": "vendor/ProfileStore/ProfileStore.luau"
+        }
+      },
+      "GrowAPlanetTests": {
+        "TestEZ": {
+          "$path": "DevPackages/_Index/roblox_testez@0.4.1/testez/src"
+        },
+        "$className": "Folder"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$ignoreUnknownInstances": true,
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$ignoreUnknownInstances": true,
+        "GrowAPlanet": {
+          "$path": "src/client"
+        }
+      }
+    }
+  }
+}

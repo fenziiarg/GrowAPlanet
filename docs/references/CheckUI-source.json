@@ -1,0 +1,27 @@
+{
+  "name": "CheckUI",
+  "repo": "TemporaryLooker22/Check-UI-Clean-Roblox",
+  "sha": "52ac1edfe33b76d415c4f14dc5bd17307148f0a3",
+  "files": [
+    ".gitignore",
+    "DESIGN_SYSTEM.md",
+    "README.md",
+    "SKILL.md",
+    "assets",
+    "assets/all_menus_harmonized.png",
+    "assets/shop_compact_comparison.png",
+    "assets/standard_button_studio.png",
+    "examples",
+    "examples/DailyRewardsMenuExample.luau",
+    "examples/HarmonizedMenusExample.luau",
+    "examples/RebirthMenuExample.luau",
+    "examples/ShopMenuExample.luau",
+    "examples/StandardButtonExample.luau",
+    "release_notes.md",
+    "src",
+    "src/CheckUIComponents.luau",
+    "src/CheckUIController.luau",
+    "src/CheckUIIcons.luau",
+    "src/CheckUITheme.luau"
+  ]
+}
