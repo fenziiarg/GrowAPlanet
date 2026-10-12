@@ -1,8 +1,8 @@
 # Setup — Phase 0
 
-Verified on Windows on 2026-10-12 in `C:\Users\matia\Projects\GrowAPlanet`.
-Git local author: fenziiarg <340811680+fenziiarg@users.noreply.github.com>.
-Origin: https://github.com/fenziiarg/GrowAPlanet.git. Existing repo and owner-confirmed isolated experience reused.
+Verified on Windows on 2026-10-12 from the repository root.
+Git author is configured locally; use your own author name and email.
+The existing repository and owner-confirmed isolated experience are reused. Inspect the origin with `git remote -v`.
 
 ## Versions
 
@@ -44,8 +44,8 @@ Disconnect before switching projects. Studio source edits are not a replacement 
 Run each command in a separate process from the repo:
 
 ```powershell
-& 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe' --background --factory-startup --python assets/scripts/build_pipeline_cube.py
-& 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe' --background --factory-startup --python assets/scripts/verify_pipeline_cube.py
+blender --background --factory-startup --python assets/scripts/build_pipeline_cube.py
+blender --background --factory-startup --python assets/scripts/verify_pipeline_cube.py
 ```
 
 The first writes the original .blend and FBX; the second reopens the blend and independently reimports FBX.

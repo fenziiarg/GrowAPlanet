@@ -6,7 +6,7 @@ Phase 0 prepares the design foundation; no gameplay screens or interactive UI ha
 
 Reviewed TemporaryLooker22/Check-UI-Clean-Roblox at commit
 52ac1edfe33b76d415c4f14dc5bd17307148f0a3: SKILL.md, DESIGN_SYSTEM.md, Theme,
-Components, Controller, Icons, and all five supplied example modules. A reference copy is kept under
+Components, Controller, Icons, and all five supplied example modules. A local, Git-ignored reference copy is kept under
 docs/references/check-ui and is excluded from every Rojo mapping. Icon ID tables were inspected as data;
 their individual Roblox media licenses were not verified. None are selected for use.
 
@@ -45,3 +45,5 @@ No paid resources, unknown-license images or upstream icon IDs are used. Any lat
 must receive an individual manifest entry and preserved notice before use.
 
 Accessibility, responsive behavior and the resulting look remain untested until there is actual UI.
+
+Owner accepted the original Check-UI-inspired direction before Phase 1.

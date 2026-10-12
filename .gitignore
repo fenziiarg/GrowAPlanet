@@ -7,3 +7,4 @@ ServerPackages/
 *.blend2
 *.rbxl.lock
 sourcemap.json
+/docs/references/check-ui/

@@ -5,7 +5,7 @@ Results:
 Created sourcemap at sourcemap.json
 [INFO] Loading definitions file: @roblox - .tools/globalTypes.d.luau
 [WARN] client does not allow didChangeWatchedFiles registration - automatic updating on sourcemap changes disabled
-[INFO] Loading Luau configuration from c:\Users\matia\Projects\GrowAPlanet\.luaurc
+[INFO] Loading Luau configuration from .luaurc
 Building project 'Grow a Planet'
 Built project to GrowAPlanet.rbxlx
 Building project 'Grow a Planet - Development'

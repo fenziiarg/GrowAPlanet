@@ -8,7 +8,7 @@
 
 ## Owner-only / future acceptance
 
-- [ ] Review docs/reports/phase-0.md and approve Phase 1 explicitly when ready. No Phase 1 work has started.
+- [x] Owner approved Phase 1, the original UI direction, vendored ProfileStore and existing experience.
 - [ ] Before persistence tests in Phase 1, open the approved experience's Game Settings > Security and
   verify **Enable Studio Access to API Services**. If you enable it, use isolated development data namespaces;
   Studio can access live experience data. The setting has not been changed or verified by this agent.
