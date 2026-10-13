@@ -9,9 +9,9 @@
 ## Owner-only / future acceptance
 
 - [x] Owner approved Phase 1, the original UI direction, vendored ProfileStore and existing experience.
-- [ ] Before persistence tests in Phase 1, open the approved experience's Game Settings > Security and
-  verify **Enable Studio Access to API Services**. If you enable it, use isolated development data namespaces;
-  Studio can access live experience data. The setting has not been changed or verified by this agent.
+- [x] **Enable Studio Access to API Services** was observed enabled on 2026-10-12 (ProfileStore reported
+  API services available during Phase 1 acceptance). This agent did not change the setting. Studio can access
+  live experience data, so code keeps Studio saves in the separate `GrowAPlanet_Studio_v1` namespace.
 - [ ] Optionally rename the experience to Grow a Planet in Creator Dashboard. IDs above are authoritative;
   the current Studio title still uses the owner's existing Spanish place name. Do not change public access.
 - [ ] Reconnect Rojo when reopening Studio using SETUP.md. Choose the development mapping only for tests.

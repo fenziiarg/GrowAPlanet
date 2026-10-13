@@ -11,6 +11,10 @@ local Session = require(Server.Session)
 local ServerConfig = require(Server.config)
 local ProfileStore = require(game:GetService("ServerStorage").GrowAPlanetDependencies.ProfileStore)
 local Debug = {}
+function Debug.inspect(player: Player): any
+	assert(RunService:IsStudio(), "Debug tools require Studio")
+	return Service.inspect(player)
+end
 function Debug.skip(player: Player, seconds: number): boolean
 	assert(RunService:IsStudio(), "Debug tools require Studio")
 	assert(

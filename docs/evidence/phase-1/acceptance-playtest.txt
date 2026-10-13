@@ -1,0 +1,55 @@
+Phase 1 acceptance playtest — 2026-10-12 (UTC times 23:55–00:00)
+Place 94365962623582 ("Crecer un planeta"), Studio Play (Client + Server datamodels), local Windows Studio.
+Studio scripts verified byte-identical (CRLF/trailing-newline normalized) to the repo working tree: 19/19.
+Driven through StudioMCP.exe (execute_luau, user_mouse_input, start_stop_play, get_console_output).
+Server state read through the development-only bindable bridge ServerStorage.GrowAPlanetTests.Control.
+Player user ID redacted as [userId]. Balance values are server-side profile data, not client display.
+
+== Session 1 startup console
+26 passed, 0 failed, 0 skipped
+[GrowAPlanet:Phase1] TESTS_PASS passed=26 failed=0
+[ProfileStore]: Roblox API services available - data will be saved
+[GrowAPlanet] PROFILE_READY schema=1 namespace=GrowAPlanet_Studio_v1
+Inspect 23:56:14  GrowthPoints=337.4  lastSaved GrowthPoints=245.1 (existing Studio-namespace record loaded)
+
+== Earn by real UI clicks (user_mouse_input, 5 left clicks on PlayerGui.GrowAPlanetHUD.Resources.Grow, 300 ms apart)
+Inspect 23:56:46  stats={}           GrowthPoints=369.7
+Inspect 23:57:01  stats={accepted=5} GrowthPoints=389.5   (+19.8 = 5 clicks + ~15 s online income)
+
+== Client attempts to send resource amounts (execute_luau in Client datamodel)
+Payloads: ("Click", 1e15), ({GrowthPoints={m=9,e=300}}), ("SetResource","Money",1e9), ("GrowthPoints",1e12), (1e15)
+Inspect 23:57:12  stats={accepted=5}                     GrowthPoints=400.1 Money=0
+Inspect 23:57:22  stats={accepted=5,malformed_intent=5}  GrowthPoints=410.5 Money=0   (+10.4 in 10 s = online income only)
+Console: [GrowAPlanet] REJECT malformed_intent   (log throttled to one line per category per 5 s)
+
+== Rapid remote spam (200 x FireServer("Click") from client in 0.0004 s)
+Inspect 23:57:35  stats={accepted=5,malformed_intent=5}                                   GrowthPoints=423.6
+Inspect 23:57:44  stats={accepted=13,malformed_intent=5,request_rate=184,click_rate=8}   GrowthPoints=440.1
+  200 sent = 184 request_rate rejects + 16 within request burst; of those 16, 8 accepted (click burst) + 8 click_rate rejects.
+Console: [GrowAPlanet] REJECT click_rate
+         [GrowAPlanet] REJECT request_rate
+
+== Real DataStore persistence acceptance (Debug.persistence via bridge, Server datamodel, 2.1 s)
+{"ok":true,"result":{"realDataStore":true,"saved":42,"afterFailedLoad":42,"reopened":true,"injectedFailures":1,
+ "key":"Acceptance_5c958e1c-b091-4548-8ba9-e9aae6db3f57"}}
+  Real ProfileStore session on a unique key in GrowAPlanet_Studio_v1 saved 42 GP and ended (OnAfterSave observed);
+  an injected acquisition failure through Session.load granted no session and the stored record still read 42;
+  a new real session reopened the key with 42 GP.
+
+== Leave and rejoin (stop Play -> start Play)
+Inspect 23:58:10 (before stop)  GrowthPoints=466.3  lastSaved=245.1
+start_stop_play false -> "Game Stopped"
+start_stop_play true  -> "Game Started"; console: TESTS_PASS 26/0, API services available, PROFILE_READY schema=1
+Inspect 23:58:56 (new session)  lastSaved GrowthPoints=472.0  live GrowthPoints=486.3  stats={}
+  472.0 >= 466.3: release committed the remaining online seconds and the final save was loaded on rejoin.
+
+== Debug tools (Studio-only bridge)
+{"skipOk":true,"skipDelta":600,"negativeSkipAccepted":false,"simulated":true,"sim3600s_2cps_GP":"10.8K","sim_Money":"0"}
+  Console for the refused negative skip: ServerStorage.GrowAPlanetTests.Debug:20: Invalid skip
+  The two "Unknown development command" errors in the session-2 console came from my first Simulate call with
+  wrongly ordered bridge arguments (command, player, seconds, clicks); the corrected call is the result above.
+
+Screenshot: hud-playtest.png (session 2, Growth Points 513 shown by the HUD).
+
+== Earlier evidence (initial-playtest.txt, before API access was enabled)
+API access disabled -> "[GrowAPlanet] LOAD_FAILED data_services_unavailable; no default profile created" and a kick.

@@ -14,3 +14,23 @@ print(
 		result.failureCount
 	)
 )
+-- Bindable bridge uses the running Script VM's module cache, unlike isolated MCP require calls.
+local debugTools = require(storage.GrowAPlanetTests.Debug)
+local bridge = Instance.new("BindableFunction")
+bridge.Name = "Control"
+bridge.OnInvoke = function(command: string, player: Player?, seconds: number?, clicks: number?): any
+	if command == "Inspect" and player then
+		return debugTools.inspect(player)
+	end
+	if command == "Skip" and player and seconds then
+		return debugTools.skip(player, seconds)
+	end
+	if command == "Simulate" and seconds and clicks then
+		return debugTools.simulate(seconds, clicks)
+	end
+	if command == "Persistence" then
+		return debugTools.persistence()
+	end
+	error("Unknown development command")
+end
+bridge.Parent = storage.GrowAPlanetTests

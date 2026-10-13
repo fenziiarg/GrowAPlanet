@@ -1,4 +1,4 @@
-# Setup — Phase 0
+# Setup — Phase 1
 
 Verified on Windows on 2026-10-12 from the repository root.
 Git author is configured locally; use your own author name and email.
@@ -34,10 +34,15 @@ luau-lsp's CLI may emit a nonfatal file-watcher registration warning.
 
 `./scripts/serve.ps1 -Development` serves only localhost:34872. Connect the Rojo plugin in the approved place.
 Both mappings restrict servePlaceIds to 94365962623582 and do not manage Workspace.
-The development map adds TestEZ's source directory and a Studio-only pipeline script. Play should print
-`[GrowAPlanet:Phase0] PIPELINE_PASS revision=2 configs=6 ProfileStore=server-only TestEZ=loaded`.
+The development map adds TestEZ, unit specs, a Studio-only runner and server-only debug tools. Play prints
+`[GrowAPlanet:Phase1] TESTS_PASS` followed by the test counts when all assertions pass.
 The release mapping contains neither TestEZ nor the pipeline runner. Never publish a development build.
 Disconnect before switching projects. Studio source edits are not a replacement for repo edits.
+If another Rojo server occupies the port, use `./scripts/serve.ps1 -Development -Port 34873`
+and connect to that port. A new port can require an owner-approved Studio plugin permission prompt.
+Phase 1 testing uses port 34873; the prior release server on 34872 was left untouched.
+Build isolation is checked on clean generated places. Switching a connection on an existing place can
+retain unmanaged objects; do not publish a development Studio session as the release artifact.
 
 ## Blender
 
@@ -62,5 +67,7 @@ Rojo: real filesystem-to-Studio sync and execution tested. Blender MCP: connecte
 safe asset generation uses fresh background Blender processes instead of touching the interactive scene.
 GitHub: repository access verified; push status recorded in the phase report/chat.
 No physical mobile devices tested. Device simulator availability is not a UI/device acceptance test.
-Studio DataStore API access is unverified. ProfileStore is installed but deliberately not required in Phase 0:
-loading it can perform a Studio API probe write. No save/session-lock behavior has been tested yet.
+Phase 1 requires real Studio API access to play. The initial test found it disabled and confirmed the
+safe load-failure kick. The owner controls that setting; see the Phase 1 report for later acceptance results.
+ProfileStore performs an API probe and saves only to the separate Studio namespace during these tests.
+See ENGINE.md for the schema, namespace, precision limits and test commands.
