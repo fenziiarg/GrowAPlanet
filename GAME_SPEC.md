@@ -4,9 +4,9 @@
 
 **First full build (this spec's launch scope):**
 - **One planet** (the home planet) with the HOI4-style strategic map and camera.
-- Planet growth: Earth Mass, Water Mass, Total Size, 5 stages.
+- Planet growth: Earth Mass, Water Mass, Total Size. No named Earth stages (Barren Rock, Volcanic, etc. are removed).
 - Clickable regions on the sphere with terrain types, each developable on its own.
-- Civilization and economy: 6 eras, 6 resources, per-region buildings and upgrades, offline income.
+- Civilization and economy: Human History ages (section 5), 6 resources, cities developed per region, offline income.
 - Saving, full UI, mobile + PC support.
 
 **Deferred to a later phase (do NOT build unless the owner asks):**
@@ -29,7 +29,7 @@ Design systems so deferred content can be added later through config and content
 6. Mobile layout polish (keep it usable)
 7. If performance forces it: reduce region count BEFORE cutting any region feature.
 
-**Never cut:** server-authoritative economy, saving, offline income, planet stages, the 6 eras, real clickable regions on the sphere, rotate/zoom camera.
+**Never cut:** server-authoritative economy, saving, offline income, planet stages, the Human History ages, real clickable regions on the sphere, rotate/zoom camera.
 
 ---
 
@@ -54,7 +54,7 @@ Follow AGENTS.md section 3 for all asset acquisition. Everything is free: origin
 Clean, readable, stylized (not photoreal):
 - A planet with strong silhouette and clear terrain colors that read at a glance from far away.
 - Visible growth: the planet scales, oceans rise, land and atmosphere appear, clouds, city lights at night.
-- Each of the 5 stages looks clearly different.
+- The planet's look changes with Kardashev milestones (section 5), not with Earth stage names.
 - Regions are readable at every zoom level, with clear hover and selection highlights.
 - Consistent UI style based on the Check-UI foundation.
 
@@ -88,7 +88,7 @@ Click/tap to generate Growth Points → grow the planet → select a region → 
 
 ### Planet growth
 - Stats: **Earth Mass, Water Mass, Total Size**.
-- Stages: **Barren Rock > Volcanic > Oceanic > Habitable > Mature World**, with thresholds in config.
+- No named Earth stages. Growth is shown through Earth Mass, Water Mass and Total Size only.
 - The 3D planet visibly scales and changes with growth. Scaling is driven by attributes on one planet model.
 - Regions, camera, and UI must scale with the planet.
 
@@ -107,20 +107,36 @@ Click/tap to generate Growth Points → grow the planet → select a region → 
 
 ## 5. Civilization and economy
 
-**Eras:** Stone Age > Bronze/Iron > Medieval > Industrial > Modern > Space Age.
-- Each era unlocks new buildings, a higher income multiplier, and new upgrade trees.
-- Space Age is the final era of v1 and unlocks nothing space-related.
+**Human History ages (progression):**
+- Stone Age: Paleolithic, Mesolithic, Neolithic.
+- Metal Age: Copper, Bronze, Iron.
+- Later Historical Eras: Middle Ages, Renaissance, Industrial, Information, Silicon and AI.
+- Each age unlocks new buildings, a higher income multiplier, and new upgrade trees.
+- Sub-ages (for example Paleolithic) can be milestones within an age; the exact unlock points are proposed in config.
+- Ages after the Silicon and AI Age are not in v1.
+
+**Socioeconomic stages (per city development):**
+- Hunter-Gatherer, Horticultural and Pastoral, Agricultural, Industrial, Post-Industrial.
+- A city's socioeconomic stage follows its development level and sets how much money, research and population it produces.
+- Cities are developed one at a time, similar to Hearts of Iron IV or Cities: Skylines: buildings, districts and upgrades increase the city's development level.
+
+**Kardashev milestones (planet look and big goals):**
+- Type 0 (planet as now), Type I (orbital ring of habitats around the planet), Type II (lattice shell around the star; needs a star in the scene), Type III (galaxy-scale rings; visual only until space expansion).
+- Type IV and Type V are not in v1.
+- Each milestone changes the planet's model and effects. The milestone itself is earned through the economy and is server-authoritative.
+
+**Barrow scale:** Type I-minus through Type Omega-minus. Deferred; design intent only.
 
 **Per region:**
 - Own population and buildings. The player develops regions one by one.
-- At least 2 buildings per era.
+- At least 2 buildings per age.
 - Production depends on terrain and buildings.
 
-**Planet totals:** the sum of all regions plus planet-wide era multipliers.
+**Planet totals:** the sum of all regions plus planet-wide age multipliers.
 
 **Pacing targets for a new player (playtest targets):**
-- First 5 minutes: the planet visibly grows and the first era unlocks.
-- First hour: Modern era reached.
+- First 5 minutes: the planet visibly grows and the first age unlocks.
+- First hour: Industrial Age reached.
 
 Bot-simulated playthroughs may be used to measure pacing, but must be labeled as **simulated**. Pacing is only Verified after the owner plays it.
 
@@ -175,11 +191,11 @@ Keep the architecture ready for these. Write no code for them.
 ## 9. Test matrix (verify and report honestly)
 
 - Full first session as a new player: click, grow, build, era-up.
-- All 5 planet stages: visuals, stat thresholds, and region scaling.
+- Planet visuals at each Kardashev milestone, and region scaling at each one.
 - Camera at minimum and maximum zoom, at the poles, and at every planet size.
 - Region picking accuracy, including back side, poles, and edges.
 - Terrain production differences.
-- Every era reached by scripted simulation.
+- Every Human History age reached by scripted simulation, and every Kardashev milestone reached with a visible planet change.
 - Offline income: below the cap, at the cap, past the cap.
 - Rejoin after progression, builds, and stage changes (region data intact).
 - Insufficient resources, invalid region IDs, rapid repeated requests.

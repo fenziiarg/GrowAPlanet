@@ -1,5 +1,7 @@
 # PHASE_PROMPTS.md: Paste these into Codex one at a time
 
+**Change request (2026-10-12, owner):** Earth stage names (Barren Rock, Volcanic, Oceanic, Habitable, Mature World) are removed. Progression uses Human History ages, cities are developed per region with socioeconomic stages, and the planet's look changes at Kardashev milestones. GAME_SPEC.md section 5 is the source of truth. Phases 0-3 stay as built. Phase 4 implements the ages, city development and the Kardashev visuals. Do not start Phase 4 until the owner approves.
+
 Before starting, put `AGENTS.md`, `GAME_SPEC.md`, and this file in the repo root.
 After each phase, read the report, test the game yourself if you can, then paste the next prompt.
 
@@ -154,8 +156,8 @@ Execute Phase 4 only.
 Goal: the full era and regional economy system.
 
 Build:
-- 6 eras with unlock conditions, income multipliers, and upgrade trees.
-- At least 2 buildings per era, built per region, using the 6 resources.
+- Human History ages (Stone, Metal, Later Historical, Silicon and AI) with unlock conditions, income multipliers, and upgrade trees.
+- Cities per region with socioeconomic stages (Hunter-Gatherer to Post-Industrial). At least 2 buildings per age, built in cities, using the 6 resources.
 - Per-region population and production based on terrain (propose the terrain-to-production table
   in config).
 - Planet totals from the sum of regions plus era multipliers.
@@ -163,7 +165,7 @@ Build:
 - Offline income with a cap, calculated on rejoin.
 
 Done when:
-- A scripted simulation reaches each of the 6 eras, with logs.
+- A scripted simulation reaches each Human History age and each Kardashev milestone, with logs.
 - Different terrains produce different outputs per the table, shown by a test.
 - Offline income is tested with simulated timestamps: below the cap, at the cap, and past the cap.
 - Every build and purchase is validated server-side, including invalid region IDs, with logs for
