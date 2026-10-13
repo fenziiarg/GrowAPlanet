@@ -1,4 +1,4 @@
-# Setup — Phase 3
+# Setup — Phase 4
 
 Verified on Windows on 2026-10-12 from the repository root.
 Git author is configured locally; use your own author name and email.
@@ -35,7 +35,7 @@ luau-lsp's CLI may emit a nonfatal file-watcher registration warning.
 `./scripts/serve.ps1 -Development` serves only localhost:34872. Connect the Rojo plugin in the approved place.
 Both mappings restrict servePlaceIds to 94365962623582 and do not manage Workspace.
 The development map adds TestEZ, unit specs, a Studio-only runner and server-only debug tools. Play prints
-`[GrowAPlanet:Phase3] TESTS_PASS` followed by the test counts when all assertions pass.
+`[GrowAPlanet:Phase4] TESTS_PASS` followed by the test counts when all assertions pass.
 The release mapping contains neither TestEZ nor the pipeline runner. Never publish a development build.
 Disconnect before switching projects. Studio source edits are not a replacement for repo edits.
 If another Rojo server occupies the port, use `./scripts/serve.ps1 -Development -Port 34873`
@@ -65,6 +65,12 @@ ID has not been independently verified. Do not use it as a production asset. See
 Studio MCP: read/Edit execution, play/stop, server inspection and console output tested.
 Rojo: real filesystem-to-Studio sync and execution tested. Blender MCP: connected scene inspection;
 safe asset generation uses fresh background Blender processes instead of touching the interactive scene.
+Blender Lab MCP (Phase 4): Blender 5.1+ required (5.2.2 here). The add-on "mcp" 1.0.3 is in the Blender user
+extensions. The server is `~/Tools/blender-lab-mcp/venv/Scripts/blender-mcp.exe` (pip install
+`git+https://projects.blender.org/lab/blender_mcp.git@dbbf836ad4b1025f14a2b3b504c43903f39e0b04#subdirectory=mcp`).
+It is registered with Claude Code as `Blender_Lab` (local scope) with `BLENDER_PATH` set for its `*_for_cli`
+background tools. It talks to the add-on's localhost:9876 bridge in the running Blender.
+Upstream warns that it runs model-written Python without safeguards, so use it only on project files.
 GitHub: repository access verified; push status recorded in the phase report/chat.
 No physical mobile devices tested. Device simulator availability is not a UI/device acceptance test.
 Phase 1 requires real Studio API access to play. The initial test found it disabled and confirmed the

@@ -4,9 +4,10 @@ export type Look = {
 	clouds: boolean,
 	atmosphereColor: Color3?,
 }
+-- Internal growth tiers: they drive terrain and atmosphere but have no player-facing name
+-- (the owner removed named Earth stages; growth is shown as Earth/Water Mass and Total Size).
 export type Stage = {
 	id: string,
-	name: string,
 	minimumEarthMass: number,
 	minimumWaterMass: number,
 	look: Look,
@@ -68,8 +69,7 @@ local definitions: { [string]: Definition } = {
 		},
 		stages = {
 			{
-				id = "BarrenRock",
-				name = "Barren Rock",
+				id = "Tier1",
 				minimumEarthMass = 0,
 				minimumWaterMass = 0,
 				look = {
@@ -77,8 +77,7 @@ local definitions: { [string]: Definition } = {
 				},
 			},
 			{
-				id = "Volcanic",
-				name = "Volcanic",
+				id = "Tier2",
 				minimumEarthMass = 800,
 				minimumWaterMass = 0,
 				look = {
@@ -87,8 +86,7 @@ local definitions: { [string]: Definition } = {
 				},
 			},
 			{
-				id = "Oceanic",
-				name = "Oceanic",
+				id = "Tier3",
 				minimumEarthMass = 1600,
 				minimumWaterMass = 600,
 				look = {
@@ -97,8 +95,7 @@ local definitions: { [string]: Definition } = {
 				},
 			},
 			{
-				id = "Habitable",
-				name = "Habitable",
+				id = "Tier4",
 				minimumEarthMass = 2600,
 				minimumWaterMass = 1400,
 				look = {
@@ -107,8 +104,7 @@ local definitions: { [string]: Definition } = {
 				},
 			},
 			{
-				id = "MatureWorld",
-				name = "Mature World",
+				id = "Tier5",
 				minimumEarthMass = 4200,
 				minimumWaterMass = 2800,
 				look = {

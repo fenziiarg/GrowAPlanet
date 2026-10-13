@@ -20,7 +20,7 @@ return function()
 
 	it("starts as a Barren Rock at base size", function()
 		local stats = Planet.stats(definition, Planet.initial())
-		assert(stats.stage == 1 and stats.stageId == "BarrenRock", "stage 1")
+		assert(stats.stage == 1 and stats.stageId == "Tier1", "tier 1")
 		assert(stats.earthMass == 0 and stats.waterMass == 0, "zero mass")
 		assert(stats.totalSize == definition.baseSizeKm, "base size")
 	end)
@@ -137,7 +137,7 @@ return function()
 		}
 		v1.planets.home.resources.GrowthPoints = Big.new(42)
 		local upgraded = Schema.upgrade(v1, 123)
-		assert(upgraded ~= nil and upgraded.schemaVersion == 3, "upgraded")
+		assert(upgraded ~= nil and upgraded.schemaVersion == 4, "upgraded")
 		assert((upgraded :: any).planets.home.growth.earthLevel == 0, "growth added")
 		assert(
 			Big.compare((upgraded :: any).planets.home.resources.GrowthPoints, Big.new(42)) == 0,
@@ -162,7 +162,7 @@ return function()
 		end, function()
 			return false
 		end)
-		assert(profile == fake and data.schemaVersion == 3, "migrated in place")
+		assert(profile == fake and data.schemaVersion == 4, "migrated in place")
 		assert(
 			Big.compare(data.planets.home.resources.GrowthPoints, Big.new(7)) == 0,
 			"balance kept"

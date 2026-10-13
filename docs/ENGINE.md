@@ -99,13 +99,45 @@ so framing follows planet growth. Controls:
 Avatars are disabled (`Players.CharacterAutoLoads = false`). The view adds a client-only ambient fill light so the
 night side stays readable.
 
+## Civilization and economy (Phase 4)
+
+`src/shared/Civilization.luau` holds the pure rules. All numbers live in `config/ages.luau` (ages and the upgrade
+tree), `config/buildings.luau`, `config/cities.luau`, `config/kardashev.luau` and `config/terrain.luau` (the
+terrain-to-production table). The owner removed named Earth stages: growth tiers 1–5 still drive terrain and
+atmosphere internally, but the UI shows only Earth Mass, Water Mass and Total Size.
+
+- **Cities.** One city per region, founded on Grassland, Forest, Desert or Mountains. Each further city costs
+  ×1.8 more Growth Points. Founding the first city starts the Paleolithic.
+- **Development and stage.** Development = Σ building level × development points. It selects the socioeconomic
+  stage (Hunter-Gatherer → Post-Industrial), which scales the city's Money, Research and population.
+- **City production per resource.** (city baseline + Σ level × building output) × terrain multiplier × stage
+  multiplier (Money and Research only) × current-age multiplier × upgrade and Kardashev multipliers.
+- **Population.** (baseline housing + Σ level × housing) × terrain Housing × stage × upgrade Housing. It is
+  derived and stored per city, and validated on load against what the city's buildings produce.
+- **Planet totals** are the sum over cities, plus the growth-level Growth Point income.
+- **Ages.** 11 steps: Paleolithic, Mesolithic, Neolithic, Copper, Bronze, Iron, Middle Ages, Renaissance,
+  Industrial, Information, Silicon and AI. Each needs a planet population and costs resources; its income
+  multiplier replaces the previous one.
+- **Kardashev Types I–III** are megaprojects gated by age that multiply production. The client renders an orbital
+  habitat ring, a star with a lattice shell, and galactic rings.
+- **Offline income.** On load, the server credits production × 50% for min(now − lastOnline, 8 h), using
+  `os.time()`. `lastOnline` is stamped every tick and on release; clock skew backwards credits nothing.
+- **Intents** have exact arities: `FoundCity id`, `Build id building`, `AdvanceAge`, `BuyUpgrade id`, `Kardashev`.
+  They share an action rate limit (burst 10, 6/s). Region IDs must be integers in 1..252.
+- **Save data.** Schema v4 adds `planets.home.civilization = { age, upgrades, kardashev, lastOnline }`.
+  City presence is a key in `regions.buildings`, and city regions keep their terrain.
+
 ## Development tests
 
 `dev.project.json` includes TestEZ, the unit specs and `ServerStorage.GrowAPlanetTests.Debug`.
 Play runs the suite and creates `ServerStorage.GrowAPlanetTests.Control`, a BindableFunction bridge, because MCP
 `require` calls get an isolated module cache. Its commands are `Inspect(player)`, `Skip(player, seconds)`,
-`Grow(player, id)`, `SetGrowth(player, earth, water)`, `SetPopulation(player, region, n)`, `Simulate(seconds,
-clicksPerSecond)` and `Persistence()`. `SetGrowth` and `SetPopulation` edit only Studio-namespace test data.
+`Grow(player, id)`, `SetGrowth(player, earth, water)`, `Grant(player, resource, amount)`, `Offline(player,
+secondsAway)`, `Act(player, intent, a, b)`, `Simulate(seconds, clicksPerSecond)` and `Persistence()`.
+Grants and growth edits touch only Studio-namespace test data. `Act` calls the same `Service.act` as the remote.
+`Simulate` runs `tests/Bot.luau` (development mapping only). The bot plays the whole game on in-memory data with the
+real rules and logs when each age and Kardashev milestone was reached. Its results are SIMULATED pacing. A cloned
+Bot with a `SharedOverride` ObjectValue loads cloned shared modules, so Edit-mode tuning runs are never cached.
 `tests/ClientDebug.client.luau` (development mapping only) adds the client bridge
 `ReplicatedStorage.GrowAPlanetClientControl` with State, Focus, Pick, Targets, Reachability, Coverage, Freeze
 and Fps. It reaches the live camera and picker through `src/client/ClientRegistry.luau`.

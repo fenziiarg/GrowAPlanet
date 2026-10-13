@@ -4,13 +4,13 @@ local Server = game:GetService("ServerScriptService").GrowAPlanet
 local Shared = game:GetService("ReplicatedStorage").GrowAPlanet
 local Service = require(Server.Service)
 local Config = require(Shared.config.economy)
-local Economy = require(Shared.Economy)
 local Planet = require(Shared.Planet)
 local Big = require(Shared.BigNumber)
 local Schema = require(Server.ProfileSchema)
 local Session = require(Server.Session)
 local ServerConfig = require(Server.config)
 local ProfileStore = require(game:GetService("ServerStorage").GrowAPlanetDependencies.ProfileStore)
+local Bot = require(script.Parent.Bot)
 local Debug = {}
 function Debug.inspect(player: Player): any
 	assert(RunService:IsStudio(), "Debug tools require Studio")
@@ -36,36 +36,42 @@ function Debug.setGrowth(player: Player, earthLevel: number, waterLevel: number)
 	print(string.format("[GrowAPlanet:Debug] SET_GROWTH earth=%d water=%d", earthLevel, waterLevel))
 	return true
 end
--- Studio-namespace test data only: give one region a population to prove region data persists.
-function Debug.setPopulation(player: Player, regionId: number, population: number): boolean
+-- Studio-namespace test data only: add resources so purchase paths can be exercised quickly.
+function Debug.grant(player: Player, resource: string, amount: number): boolean
 	assert(RunService:IsStudio(), "Debug tools require Studio")
 	local planet = Service.studioData(player)
-	assert(planet ~= nil, "No active session")
-	local data = table.clone(planet.regions)
-	data.population = table.clone(data.population)
-	data.population[tostring(regionId)] = population
-	assert(Schema.validRegions(ServerConfig.planetId, data), "Invalid region data")
-	planet.regions = data
-	Service.studioRefresh(player)
-	print(
-		string.format(
-			"[GrowAPlanet:Debug] SET_POPULATION region=%d population=%d",
-			regionId,
-			population
-		)
+	assert(
+		planet ~= nil and planet.resources[resource] ~= nil and resource ~= "Population",
+		"Invalid grant"
 	)
+	planet.resources[resource] = Big.add(planet.resources[resource], Big.new(amount))
+	Service.studioRefresh(player)
+	print(string.format("[GrowAPlanet:Debug] GRANT %s %s", resource, Big.format(Big.new(amount))))
 	return true
+end
+-- Simulate having been away `secondsAway` seconds: runs the real offline-income path.
+function Debug.offline(player: Player, secondsAway: number): number
+	assert(RunService:IsStudio(), "Debug tools require Studio")
+	local planet = Service.studioData(player)
+	assert(planet ~= nil and secondsAway >= 0, "Invalid offline test")
+	local now = os.time()
+	planet.civilization.lastOnline = now - secondsAway
+	return Service.applyOffline(player, now)
+end
+-- The same server path as the client's purchase intents (validation included).
+function Debug.act(player: Player, intent: string, a: any, b: any): (boolean, string?)
+	assert(RunService:IsStudio(), "Debug tools require Studio")
+	return Service.act(player, intent, a, b)
 end
 function Debug.grow(player: Player, id: string): (boolean, string?)
 	assert(RunService:IsStudio(), "Debug tools require Studio")
 	return Service.grow(player, id)
 end
--- Bot playthrough on fresh in-memory data (never a profile): click at a fixed rate and buy the
--- growth the next stage still needs, cheapest first. Results are simulated, not human-verified.
+-- Bot playthrough on fresh in-memory data (never a profile). Results are SIMULATED pacing.
 function Debug.simulate(seconds: number, clicksPerSecond: number): any
 	assert(RunService:IsStudio(), "Debug tools require Studio")
 	assert(
-		seconds >= 0 and seconds <= Config.maxSimulationSeconds and seconds % 1 == 0,
+		seconds >= 0 and seconds <= Config.maxBotSeconds and seconds % 1 == 0,
 		"Invalid simulation duration"
 	)
 	assert(
@@ -74,52 +80,7 @@ function Debug.simulate(seconds: number, clicksPerSecond: number): any
 			and clicksPerSecond % 1 == 0,
 		"Invalid click rate"
 	)
-	local definition = Planet.definition(ServerConfig.planetId)
-	local resources = Economy.initial()
-	local state = Planet.initial()
-	local stageSeconds: { [string]: number } = { [definition.stages[1].id] = 0 }
-	for second = 1, seconds do
-		resources = Economy.advance(resources, 1, Planet.production(definition, state))
-		for _ = 1, clicksPerSecond do
-			resources = Economy.click(resources)
-		end
-		while true do
-			local stats = Planet.stats(definition, state)
-			local target = definition.stages[math.min(stats.stage + 1, #definition.stages)]
-			local best: string? = nil
-			local bestCost = nil
-			for _, id in definition.growthIds do
-				local needed = if id == "Earth"
-					then stats.earthMass < target.minimumEarthMass
-					else stats.waterMass < target.minimumWaterMass
-				local unlocked = stats.stage >= (Planet.growth(definition, id) :: any).unlockStage
-				if unlocked and (needed or stats.stage == #definition.stages) then
-					local cost = Planet.cost(definition, state, id)
-					if bestCost == nil or Big.compare(cost, bestCost) < 0 then
-						best, bestCost = id, cost
-					end
-				end
-			end
-			if best == nil then
-				break
-			end
-			local nextResources, nextState = Planet.grow(definition, resources, state, best :: any)
-			if nextResources == nil or nextState == nil then
-				break
-			end
-			resources, state = nextResources, nextState
-			local stage = definition.stages[Planet.stats(definition, state).stage].id
-			stageSeconds[stage] = stageSeconds[stage] or second
-		end
-	end
-	return {
-		simulated = true,
-		seconds = seconds,
-		clicksPerSecond = clicksPerSecond,
-		stageSeconds = stageSeconds,
-		final = Planet.stats(definition, state),
-		growthPoints = Big.format(resources.GrowthPoints),
-	}
+	return Bot.run({ seconds = seconds, clicksPerSecond = clicksPerSecond })
 end
 -- Real API acceptance test on a dedicated test key. Never uses the mock backend or player keys.
 function Debug.persistence(): any

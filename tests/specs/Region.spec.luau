@@ -158,7 +158,7 @@ return function()
 			},
 		}
 		local upgraded = Schema.upgrade(v2, 555) :: any
-		assert(upgraded ~= nil and upgraded.schemaVersion == 3, "upgraded to v3")
+		assert(upgraded ~= nil and upgraded.schemaVersion == 4, "upgraded to v4")
 		local regions = upgraded.planets.home.regions
 		assert(regions.seed == 555 and #regions.terrain == topology.count, "seeded terrain")
 		local stats = Planet.stats(planet, upgraded.planets.home.growth)

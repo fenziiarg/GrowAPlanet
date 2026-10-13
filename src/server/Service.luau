@@ -4,7 +4,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage.GrowAPlanet
+local Big = require(Shared.BigNumber)
+local Civilization = require(Shared.Civilization)
 local Config = require(Shared.config.economy)
+local AgesConfig = require(Shared.config.ages)
+local KardashevConfig = require(Shared.config.kardashev)
 local Economy = require(Shared.Economy)
 local Janitor = require(Shared.Janitor)
 local Planet = require(Shared.Planet)
@@ -18,6 +22,10 @@ type Entry = {
 	requests: Limiter.Bucket,
 	clicks: Limiter.Bucket,
 	growths: Limiter.Bucket,
+	actions: Limiter.Bucket,
+	-- Cached production; cleared whenever growth, cities or civilization state change.
+	rates: { [string]: number }?,
+	population: number,
 	cleanup: () -> (),
 	lastTick: number,
 	lastSnapshot: number,
@@ -39,7 +47,24 @@ local function home(entry: Entry): Schema.PlanetData
 	return entry.profile.Data.planets[ServerConfig.planetId]
 end
 
--- Everything the client displays is derived here; the client never computes balances or costs.
+local function rates(entry: Entry): { [string]: number }
+	local cached = entry.rates
+	if cached then
+		return cached
+	end
+	local planet = home(entry)
+	local computed, population = Civilization.rates(
+		Planet.production(definition, planet.growth),
+		planet.regions,
+		planet.civilization
+	)
+	entry.rates = computed
+	entry.population = population
+	return computed
+end
+
+-- Balances, rates and stats come from the server. The client only formats them and previews
+-- config-derived prices; every purchase is re-validated here.
 local function view(entry: Entry): any
 	local planet = home(entry)
 	local stats = Planet.stats(definition, planet.growth)
@@ -62,7 +87,13 @@ local function view(entry: Entry): any
 			totalSize = stats.totalSize,
 			stage = stats.stage,
 			costs = costs,
-			income = Planet.production(definition, planet.growth),
+			income = rates(entry),
+		},
+		civilization = {
+			age = planet.civilization.age,
+			upgrades = planet.civilization.upgrades,
+			kardashev = planet.civilization.kardashev,
+			population = entry.population,
 		},
 	}
 end
@@ -90,18 +121,100 @@ function Service.advance(player: Player, seconds: number): boolean
 		return false
 	end
 	local planet = home(entry)
-	local ok, resources = pcall(
-		Economy.advance,
-		planet.resources,
-		seconds,
-		Planet.production(definition, planet.growth)
-	)
+	local perSecond = rates(entry)
+	local ok, resources = pcall(Economy.advance, planet.resources, seconds, perSecond)
 	if not ok then
 		reject(entry, "number_range")
 		return false
 	end
+	resources.Population = Big.new(entry.population)
 	planet.resources = resources
 	return true
+end
+
+-- City, building, age, upgrade and Kardashev purchases. All validation lives in Civilization;
+-- this only routes intents, commits accepted results and logs.
+local ACTIONS: { [string]: (Schema.PlanetData, any, any) -> (any, any, any, any) } = {
+	FoundCity = function(planet: Schema.PlanetData, a: any)
+		return Civilization.found(
+			ServerConfig.planetId,
+			planet.resources,
+			planet.regions,
+			planet.civilization,
+			a
+		)
+	end,
+	Build = function(planet: Schema.PlanetData, a: any, b: any)
+		return Civilization.build(
+			ServerConfig.planetId,
+			planet.resources,
+			planet.regions,
+			planet.civilization,
+			a,
+			b
+		)
+	end,
+	AdvanceAge = function(planet: Schema.PlanetData)
+		return Civilization.advanceAge(planet.resources, planet.regions, planet.civilization)
+	end,
+	BuyUpgrade = function(planet: Schema.PlanetData, a: any)
+		return Civilization.buyUpgrade(planet.resources, planet.regions, planet.civilization, a)
+	end,
+	Kardashev = function(planet: Schema.PlanetData)
+		return Civilization.advanceKardashev(planet.resources, planet.regions, planet.civilization)
+	end,
+}
+-- Exact argument counts per intent (including the intent name).
+local ARITY: { [string]: number } =
+	{ FoundCity = 2, Build = 3, AdvanceAge = 1, BuyUpgrade = 2, Kardashev = 1 }
+
+function Service.act(player: Player, intent: string, a: any, b: any): (boolean, string?)
+	local entry = entries[player]
+	if not entry or not entry.profile:IsActive() or closing then
+		return false, "no_session"
+	end
+	local action = ACTIONS[intent]
+	if action == nil then
+		reject(entry, "malformed_intent")
+		return false, "malformed_intent"
+	end
+	local planet = home(entry)
+	local before = planet.civilization
+	local ok, resources, regions, civilization, reason = pcall(action, planet, a, b)
+	if not ok then
+		reject(entry, "number_range")
+		return false, "number_range"
+	end
+	if resources == nil or regions == nil or civilization == nil then
+		reject(entry, reason or "rejected")
+		return false, reason
+	end
+	planet.resources = resources
+	planet.regions = regions
+	planet.civilization = civilization
+	entry.rates = nil
+	rates(entry)
+	planet.resources.Population = Big.new(entry.population)
+	entry.stats[intent] = (entry.stats[intent] or 0) + 1
+	print(
+		string.format(
+			"[GrowAPlanet] %s %s %s",
+			string.upper(intent),
+			tostring(a or ""),
+			tostring(b or "")
+		)
+	)
+	if civilization.age > before.age then
+		local age = AgesConfig.ages[civilization.age]
+		print("[GrowAPlanet] AGE_UP " .. age.id)
+		notify:FireClient(player, { kind = "AgeUp", age = civilization.age })
+	end
+	if civilization.kardashev > before.kardashev then
+		print("[GrowAPlanet] KARDASHEV " .. KardashevConfig.milestones[civilization.kardashev].name)
+		notify:FireClient(player, { kind = "Kardashev", type = civilization.kardashev })
+	end
+	send(player, entry)
+	return true, nil
 end
 
 -- Shared by the Grow remote intent and Studio debug tools; validation happens here.
@@ -129,12 +242,12 @@ function Service.grow(player: Player, id: string): (boolean, string?)
 	planet.resources = resources
 	planet.growth = growth
 	planet.regions.terrain = Schema.terrainFor(ServerConfig.planetId, planet)
+	entry.rates = nil
 	entry.stats.grown = (entry.stats.grown or 0) + 1
 	local stats = Planet.stats(definition, growth)
 	if stats.stage > before then
-		local stage = definition.stages[stats.stage]
-		print("[GrowAPlanet] STAGE_UP " .. stage.id)
-		notify:FireClient(player, { kind = "StageUp", stage = stats.stage })
+		-- Growth tiers are internal (terrain and atmosphere); they have no player-facing name.
+		print("[GrowAPlanet] GROWTH_TIER " .. stats.stage)
 	end
 	send(player, entry)
 	return true, nil
@@ -154,8 +267,40 @@ function Service.studioRefresh(player: Player)
 	if entry and entry.profile:IsActive() then
 		local planet = home(entry)
 		planet.regions.terrain = Schema.terrainFor(ServerConfig.planetId, planet)
+		planet.regions = Civilization.refreshPopulation(planet.regions, planet.civilization)
+		entry.rates = nil
 		send(player, entry)
 	end
+end
+
+-- Credit offline production for the time since `lastOnline` (capped), then mark online now.
+-- Studio debug tools call this with a simulated `now` to test the cap without waiting.
+function Service.applyOffline(player: Player, now: number): number
+	local entry = entries[player]
+	if not entry or not entry.profile:IsActive() then
+		return 0
+	end
+	local planet = home(entry)
+	local credited, seconds =
+		Civilization.offline(planet.resources, rates(entry), planet.civilization.lastOnline, now)
+	planet.resources = credited
+	planet.civilization.lastOnline = now
+	if seconds > 0 then
+		print(
+			string.format(
+				"[GrowAPlanet] OFFLINE_INCOME seconds=%d cap=%d",
+				seconds,
+				Config.offlineCapSeconds
+			)
+		)
+		notify:FireClient(player, {
+			kind = "Offline",
+			seconds = seconds,
+			capped = seconds >= Config.offlineCapSeconds,
+		})
+		send(player, entry)
+	end
+	return seconds
 end
 
 function Service.inspect(player: Player): any
@@ -175,8 +320,11 @@ function Service.release(player: Player)
 	if not entry then
 		return
 	end
-	-- Commit remaining online time before releasing the session; offline income is a later phase.
+	-- Commit remaining online time and stamp the logout time for offline income.
 	Service.advance(player, math.max(0, os.clock() - entry.lastTick))
+	if entry.profile:IsActive() then
+		home(entry).civilization.lastOnline = os.time()
+	end
 	entries[player] = nil
 	entry.profile:EndSession()
 	entry.cleanup()
@@ -254,6 +402,9 @@ function Service.start()
 			requests = Limiter.new(Config.requestsPerSecond, Config.requestBurst, now),
 			clicks = Limiter.new(Config.clicksPerSecond, Config.clickBurst, now),
 			growths = Limiter.new(Config.growthPerSecond, Config.growthBurst, now),
+			actions = Limiter.new(Config.actionsPerSecond, Config.actionBurst, now),
+			rates = nil,
+			population = 0,
 			lastWarning = {},
 			stats = {},
 		}
@@ -271,6 +422,7 @@ function Service.start()
 			ended:Disconnect()
 		end)
 		local growth = home(entry).growth
+		Service.applyOffline(player, os.time())
 		print(
 			string.format(
 				"[GrowAPlanet] PROFILE_READY schema=%d namespace=%s stage=%s earth=%d water=%d regions=%d",
@@ -296,6 +448,18 @@ function Service.start()
 		end
 		local args = table.pack(...)
 		local intent = args[1]
+		if type(intent) == "string" and ARITY[intent] ~= nil then
+			if args.n ~= ARITY[intent] then
+				reject(entry, "malformed_intent")
+				return
+			end
+			if not Limiter.take(entry.actions, now) then
+				reject(entry, "action_rate")
+				return
+			end
+			Service.act(player, intent, args[2], args[3])
+			return
+		end
 		if intent == "Grow" and args.n == 2 then
 			if not Limiter.take(entry.growths, now) then
 				reject(entry, "growth_rate")
@@ -357,9 +521,13 @@ function Service.start()
 		while not closing do
 			task.wait(Config.tickInterval)
 			local now = os.clock()
+			local wallClock = os.time()
 			for player, entry in entries do
 				Service.advance(player, math.max(0, now - entry.lastTick))
 				entry.lastTick = now
+				if entry.profile:IsActive() then
+					home(entry).civilization.lastOnline = wallClock
+				end
 				if now - entry.lastSnapshot >= Config.snapshotInterval then
 					send(player, entry)
 				end

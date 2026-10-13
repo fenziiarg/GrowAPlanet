@@ -23,6 +23,14 @@ return table.freeze({
 	clickGrowth = 1,
 	clicksPerSecond = 8,
 	clickBurst = 8,
+	-- City, building, age, upgrade and Kardashev purchases share one action rate limit.
+	actionsPerSecond = 6,
+	actionBurst = 10,
+	-- Offline income: production at logout, credited for at most offlineCapSeconds at this rate.
+	offlineCapSeconds = 8 * 3600,
+	offlineEfficiency = 0.5,
+	-- Bot pacing runs (Studio debug simulate) may cover more time than a live time-skip.
+	maxBotSeconds = 12 * 3600,
 	growthPerSecond = 6,
 	growthBurst = 10,
 	requestsPerSecond = 12,

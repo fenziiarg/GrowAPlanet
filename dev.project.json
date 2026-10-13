@@ -41,6 +41,9 @@
         },
         "Debug": {
           "$path": "tests/Debug.luau"
+        },
+        "Bot": {
+          "$path": "tests/Bot.luau"
         }
       }
     },

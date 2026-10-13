@@ -59,3 +59,13 @@ screens; the final responsive layout is Phase 5 work.
 Phase 3 adds a placeholder region panel at the bottom centre (region ID, terrain, population; 44 px close button)
 and a controls hint shown while nothing is selected. Hover uses a white Highlight and selection a gold one.
 Pointer hover is ignored over UI, so panels never pick regions behind them.
+
+Phase 4 (shared helpers in src/client/Ui.luau):
+- The left panel has PLANET and CIVILIZATION tabs (cyan active tab). The Civilization tab shows the age in gold,
+  the planet population, the Advance button with its population and cost, the upgrade tree (owned upgrades greyed
+  with a check) and the next Kardashev project.
+- The region panel shows terrain, city stage, development, population and production, then FOUND CITY or
+  BUILD/UPGRADE rows. Buildings of later ages stay hidden. Unaffordable or locked actions are silver and say why;
+  there are no dead buttons.
+- Resources show income per second. Toasts announce age-ups, Kardashev milestones and welcome-back offline income.
+- No Earth stage names appear anywhere, per the owner's change request.

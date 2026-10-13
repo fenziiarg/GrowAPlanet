@@ -1,0 +1,69 @@
+Phase 4 acceptance — 2026-10-13 (UTC 23:00–23:40 on 2026-10-13 local Studio clock), place 94365962623582.
+Sync: Rojo was not running (its process had exited). The repo was mirrored into Studio as Rojo maps it (with stale
+scripts pruned, e.g. the removed eras config), then checksum-verified 39/39 before play.
+Driven through StudioMCP.exe. Server state came from the Studio-only Control bridge; Debug "Act" calls Service.act,
+the same function the Request remote calls. Player user ID redacted.
+
+== Startup (existing schema v3 Studio record)
+61 passed, 0 failed, 0 skipped
+[GrowAPlanet:Phase4] TESTS_PASS passed=61 failed=0
+[ProfileStore]: Roblox API services available - data will be saved
+[GrowAPlanet] PROFILE_READY schema=4 namespace=GrowAPlanet_Studio_v1 stage=Tier5 earth=45 water=34 regions=252
+
+== Real UI path (user_mouse_input)
+Region 39 (Grassland) selected by a real map click (client selected=39).
+The city on region 39 was founded through the region panel's FOUND CITY button during this session. That click came
+from outside input on the Studio window, not from the test script; it still went through the real UI and server:
+[GrowAPlanet] FOUNDCITY 39
+[GrowAPlanet] AGE_UP Paleolithic        (founding the first city starts the first age)
+Scripted clicks on the panel's buttons (instance paths ...Region.Actions.HuntingCamp / .Hut):
+[GrowAPlanet] BUILD 39 HuntingCamp
+[GrowAPlanet] BUILD 39 Hut
+Screenshot region-panel-city-ui.png shows the panel afterwards: Grassland • Hunter-Gatherer city, Population 5,
++0.70 Food/s, Hunting Camp BUILD 40 GP, Huts BUILD 30 GP • 10 Food (Huts greyed: not yet affordable).
+(The 3D layer in that capture is black; see "Rendering" below.)
+
+== Server-side validation (17 malformed or invalid intents fired from the client datamodel)
+("FoundCity",0) ("FoundCity",9999) ("FoundCity",1.5) ("FoundCity","39") ("FoundCity",{}) ("FoundCity",NaN)
+("FoundCity",39 existing) ("FoundCity",1 Ocean) ("Build",99999,"Hut") ("Build",39,"Spaceport") ("Build",39,"Farm")
+("Build",39 [2 args]) ("Build",38 Ice,"Hut") ("AdvanceAge" at pop 12) ("BuyUpgrade","Teleporter") ("Kardashev")
+("AdvanceAge",5 [2 args])
+Server stats: invalid_region=7, city_exists=1, terrain_not_buildable=1, unknown_building=1, age_locked=2,
+malformed_intent=2, no_city=1, population_required=1, unknown_upgrade=1 (17 of 17 rejected).
+City 39 unchanged afterwards ({Hut=1, HuntingCamp=1}).
+Console: REJECT invalid_region / city_exists / terrain_not_buildable / unknown_building / age_locked /
+malformed_intent / no_city / population_required / unknown_upgrade (throttled, one line per category per 5 s).
+
+== Rate limit: 30 x ("Build",39,"HuntingCamp") in one frame
+request_rate=14, action_rate=6, accepted builds=10 (action burst); Hunting Camp level 1 -> 11.
+
+== Scripted live progression (server path, Studio test grants of 1e20 per resource; checks unlock logic, not pacing)
+AGE Mesolithic pop=34  (requires 30)       AGE Neolithic pop=75 (70)      AGE Copper pop=165 (160)
+AGE Bronze pop=333 (300)                   FOUND city 40                   AGE Iron pop=555 (550)
+FOUND city 47                              AGE MiddleAges pop=1501 (1500)  AGE Renaissance pop=4035 (4000)
+AGE Industrial pop=9033 (9000)             AGE Information pop=15347 (15000)
+AGE SiliconAI pop=51347 (50000)            KARDASHEV Type 1, Type 2, Type 3
+Final: age 11, Kardashev 3, 3 cities, all 15 upgrades owned. Each age advanced on the first housing step that met
+its population requirement; until then the server returned population_required (338 times).
+Client model after Type III: Kardashev=3, OrbitalRing parts=84 (72 segments + 12 habitats), city markers=6
+(2 per city), GrowAPlanetSpace children=481 (star + 480 galactic-ring specks; lattice adornment on the star).
+
+== Offline income with simulated timestamps (Debug Offline -> Service.applyOffline, Money rate 208,803.8/s, 50%)
+away 3600 s   -> credited 3600 s,  gained 375,832,576   expected 375,846,921  (rel. error 3.8e-5: big-number precision at 1e20)
+away 28800 s  -> credited 28800 s, gained 3,006,775,296 expected 3,006,775,372 (2.5e-8)
+away 86400 s  -> credited 28800 s (capped), same as at the cap
+[GrowAPlanet] OFFLINE_INCOME seconds=3600 cap=28800
+[GrowAPlanet] OFFLINE_INCOME seconds=28800 cap=28800 (twice)
+
+== Rejoin with a real offline gap
+Stop at 23:36:55 UTC, Play at 23:37:45 UTC.
+[GrowAPlanet] OFFLINE_INCOME seconds=51 cap=28800
+[GrowAPlanet] PROFILE_READY schema=4 ... stage=Tier5 earth=45 water=34 regions=252
+Restored: 3 cities; city 39 {Farm=30, Townhouses=15, Hut=30, HuntingCamp=11}; age 11; Kardashev 3; 15 upgrades;
+population 51,347.
+
+== Rendering (not verified this phase)
+After Studio was restarted (process ID 2468 -> 15372), every screen_capture rendered the 3D layer black, both in
+Play and in Edit mode (the Edit viewport showed only the axis gizmo and a Rojo plugin prompt). GUI layers rendered
+normally. The game state was verified through instance counts instead. Kardashev and city-marker screenshots are
+pending until Studio's 3D view renders again.

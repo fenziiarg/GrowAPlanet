@@ -43,3 +43,14 @@ Phase 3 region map: original, generated at runtime from WedgeParts (src/client/P
 Goldberg topology in src/shared/RegionTopology.luau and built-in materials (Slate, Basalt, Neon, SmoothPlastic,
 Grass, Sand, Rock, Glacier). Borders use a built-in WireframeHandleAdornment; highlights use Highlight instances.
 No meshes, textures, uploads, third-party code or asset IDs.
+
+Phase 4: city markers and Kardashev visuals (orbital habitat ring, star with a stellar lattice, galactic rings)
+are original, generated at runtime in src/client/PlanetView.luau from Roblox primitive Parts, built-in materials
+(Metal, Neon, SmoothPlastic) and a WireframeHandleAdornment. Civilization UI (src/client/Hud.luau, CivPanel.luau,
+RegionPanel.luau, Ui.luau) is original code with built-in Gotham fonts. No new third-party assets.
+
+Development tool added in Phase 4: Blender Lab MCP server (https://projects.blender.org/lab/blender_mcp,
+GPL-3.0-or-later). Add-on mcp v1.0.3, release zip SHA-256 a7a9da816192502e5a0a202a396444e266b47d8fc4f74ad4698048bd43040707,
+audited against source commit dbbf836ad4b1025f14a2b3b504c43903f39e0b04: identical apart from the version string; it only binds a
+localhost socket. The server package blender-mcp 1.0.2 is from the same commit, in a venv at
+~/Tools/blender-lab-mcp; dependencies mcp 1.30.0 (MIT), docutils, pyyaml. It is a development tool only: nothing ships in the game.

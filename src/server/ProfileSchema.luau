@@ -1,11 +1,13 @@
 --!strict
 local Shared = game:GetService("ReplicatedStorage").GrowAPlanet
 local Big = require(Shared.BigNumber)
+local Civilization = require(Shared.Civilization)
 local Economy = require(Shared.Economy)
 local Planet = require(Shared.Planet)
 local Terrain = require(Shared.Terrain)
 local Config = require(Shared.config.economy)
 local Regions = require(Shared.config.regions)
+local Buildings = require(Shared.config.buildings)
 local ServerConfig = require(script.Parent.config)
 -- Sparse per-region data keyed by region ID string; absent means zero / no buildings.
 export type RegionData = {
@@ -15,7 +17,12 @@ export type RegionData = {
 	population: { [string]: number },
 	buildings: { [string]: { [string]: number } },
 }
-export type PlanetData = { resources: Economy.Balances, growth: Planet.State, regions: RegionData }
+export type PlanetData = {
+	resources: Economy.Balances,
+	growth: Planet.State,
+	regions: RegionData,
+	civilization: Civilization.State,
+}
 export type Data = { schemaVersion: number, planets: { [string]: PlanetData } }
 local Schema = {}
 local MAX_SEED = 2 ^ 31 - 2
@@ -35,6 +42,7 @@ function Schema.new(): Data
 					population = {},
 					buildings = {},
 				},
+				civilization = Civilization.initial(),
 			},
 		},
 	}
@@ -89,7 +97,8 @@ function Schema.validRegions(planetId: string, regions: any): boolean
 			return false
 		end
 		for building, level in levels do
-			if type(building) ~= "string" or not count(level) then
+			local spec = type(building) == "string" and Buildings.byId[building] or nil
+			if spec == nil or not count(level) or level < 1 or level > spec.maxLevel then
 				return false
 			end
 		end
@@ -110,16 +119,32 @@ function Schema.validate(data: any): boolean
 		and validResources(home.resources)
 		and Planet.valid(Planet.definition(ServerConfig.planetId), home.growth)
 		and Schema.validRegions(ServerConfig.planetId, home.regions)
+		and Civilization.valid(home.civilization)
+		and Schema.populationMatches(home)
 end
 
--- Regions with any building keep their terrain when water or stage changes.
+-- Saved population is derived data; it must equal what the cities currently house.
+function Schema.populationMatches(home: PlanetData): boolean
+	local expected = Civilization.refreshPopulation(home.regions, home.civilization).population
+	for key, value in home.regions.population do
+		if expected[key] ~= value then
+			return false
+		end
+	end
+	for key, value in expected do
+		if home.regions.population[key] ~= value then
+			return false
+		end
+	end
+	return true
+end
+
+-- Regions with a city keep their terrain when water or growth changes.
 function Schema.pinnedTerrain(regions: RegionData): { [number]: string }
 	local keep: { [number]: string } = {}
-	for key, levels in regions.buildings do
-		if next(levels) ~= nil then
-			local id = tonumber(key) :: number
-			keep[id] = string.sub(regions.terrain, id, id)
-		end
+	for key in regions.buildings do
+		local id = tonumber(key) :: number
+		keep[id] = string.sub(regions.terrain, id, id)
 	end
 	return keep
 end
@@ -151,7 +176,12 @@ function Schema.upgrade(data: any, seed: number): Data?
 	if version == ServerConfig.schemaVersion and Schema.validate(data) then
 		return data -- already current; nothing to apply
 	end
-	if version ~= 1 and version ~= 2 and version ~= ServerConfig.schemaVersion then
+	if
+		type(version) ~= "number"
+		or version < 1
+		or version > ServerConfig.schemaVersion
+		or version % 1 ~= 0
+	then
 		return nil
 	end
 	local source = data.planets[ServerConfig.planetId]
@@ -165,9 +195,12 @@ function Schema.upgrade(data: any, seed: number): Data?
 	local home: PlanetData = {
 		resources = table.clone(source.resources),
 		growth = table.clone(growth),
-		regions = if version == ServerConfig.schemaVersion
+		regions = if version >= 3 and type(source.regions) == "table"
 			then table.clone(source.regions)
 			else nil :: any,
+		civilization = if version >= 4 and type(source.civilization) == "table"
+			then table.clone(source.civilization)
+			else Civilization.initial(),
 	}
 	local regions = home.regions
 	if
@@ -181,6 +214,13 @@ function Schema.upgrade(data: any, seed: number): Data?
 			buildings = if regions then regions.buildings else {},
 		}
 		home.regions.terrain = Schema.terrainFor(ServerConfig.planetId, home)
+	end
+	if
+		Schema.validRegions(ServerConfig.planetId, home.regions)
+		and Civilization.valid(home.civilization)
+	then
+		-- Population became derived from cities in v4; earlier values are recomputed.
+		home.regions = Civilization.refreshPopulation(home.regions, home.civilization)
 	end
 	local planets = table.clone(data.planets)
 	planets[ServerConfig.planetId] = home

@@ -1,0 +1,36 @@
+SIMULATED bot playthrough (tests/Bot.luau via Studio Edit mode, fresh module clones; not human-verified).
+3 clicks/s, 12h horizon:
+{"purchases":{"cities":10,"buildings":5680,"growth":47,"upgrades":15},"seconds":43200,"clicksPerSecond":3,"balances":{"Population":"19M","GrowthPoints":"1.9K","Food":"708.8M","Money":"279B","Research":"14.6T","Energy":"2.6B","Materials":"216.5M"},"age":11,"kardashevSeconds":{"Type I":5001,"Type III":34673,"Type II":10993},"kardashev":3,"ageSeconds":{"Copper":372,"Iron":676,"Paleolithic":226,"Industrial":1818,"SiliconAI":4664,"Information":4211,"MiddleAges":1484,"Mesolithic":249,"Renaissance":1534,"Neolithic":315,"Bronze":531},"cityStages":{"PostIndustrial":10},"planet":{"earth":26,"totalSize":3634.241185664279,"water":21},"simulated":true,"population":19011419,"rates":{"Population":0,"GrowthPoints":48,"Food":71417.5,"Money":3980119330.687499,"Research":13172854463.999999,"Energy":7497765000,"Materials":5274481.211999999},"cities":10}
+   226s AGE Paleolithic (first city)
+   249s AGE Mesolithic (pop 43)
+   315s AGE Neolithic (pop 176)
+   372s AGE Copper (pop 285)
+   531s AGE Bronze (pop 553)
+   676s AGE Iron (pop 630)
+  1484s AGE MiddleAges (pop 1542)
+  1534s AGE Renaissance (pop 6450)
+  1818s AGE Industrial (pop 9247)
+  4211s AGE Information (pop 73752)
+  4664s AGE SiliconAI (pop 123568)
+  5001s KARDASHEV Type I
+ 10993s KARDASHEV Type II
+ 34673s KARDASHEV Type III
+ 34673s DONE all ages and milestones
+
+0 clicks/s (idle), 12h horizon:
+{"purchases":{"cities":9,"buildings":5172,"growth":47,"upgrades":15},"seconds":43200,"clicksPerSecond":0,"balances":{"Population":"18.9M","GrowthPoints":"28.4K","Food":"706.4M","Money":"212.2B","Research":"14.3T","Energy":"1.8B","Materials":"88.3M"},"age":11,"kardashevSeconds":{"Type I":5074,"Type III":35171,"Type II":11131},"kardashev":3,"ageSeconds":{"Copper":418,"Iron":727,"Paleolithic":267,"Industrial":1873,"SiliconAI":4737,"Information":4275,"MiddleAges":1547,"Mesolithic":291,"Renaissance":1597,"Neolithic":355,"Bronze":580},"cityStages":{"PostIndustrial":9},"planet":{"earth":26,"totalSize":3634.241185664279,"water":21},"simulated":true,"population":18932940,"rates":{"Population":0,"GrowthPoints":48,"Food":65609.775,"Money":3824924722.368749,"Research":12580058937.599999,"Energy":7175668500,"Materials":4747033.090799999},"cities":9}
+   267s AGE Paleolithic (first city)
+   291s AGE Mesolithic (pop 43)
+   355s AGE Neolithic (pop 176)
+   418s AGE Copper (pop 285)
+   580s AGE Bronze (pop 548)
+   727s AGE Iron (pop 625)
+  1547s AGE MiddleAges (pop 1512)
+  1597s AGE Renaissance (pop 6434)
+  1873s AGE Industrial (pop 9412)
+  4275s AGE Information (pop 73954)
+  4737s AGE SiliconAI (pop 123478)
+  5074s KARDASHEV Type I
+ 11131s KARDASHEV Type II
+ 35171s KARDASHEV Type III
+ 35171s DONE all ages and milestones

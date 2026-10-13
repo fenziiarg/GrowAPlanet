@@ -6,8 +6,22 @@ export type Definition = {
 	name: string,
 	color: Color3,
 	material: Enum.Material,
-	-- Filled by the Phase 4 terrain-to-production table; empty until then.
+	-- Terrain-to-production table (Phase 4 proposal). Missing resources default to 1.
+	-- "Housing" scales city population. Only buildable terrains (config/cities) host cities.
 	productionMultipliers: { [string]: number },
+}
+local PRODUCTION: { [string]: { [string]: number } } = {
+	Land = { Food = 1.4, Materials = 0.9, Energy = 1, Money = 1.1, Research = 1, Housing = 1.25 },
+	Forest = { Food = 1.1, Materials = 1.4, Energy = 0.9, Money = 0.9, Research = 1.1, Housing = 1 },
+	Desert = { Food = 0.5, Materials = 1.1, Energy = 1.6, Money = 1, Research = 1, Housing = 0.75 },
+	Mountains = {
+		Food = 0.6,
+		Materials = 1.7,
+		Energy = 1.2,
+		Money = 0.9,
+		Research = 1.2,
+		Housing = 0.7,
+	},
 }
 local function terrain(
 	id: string,
@@ -22,7 +36,7 @@ local function terrain(
 		name = name,
 		color = color,
 		material = material,
-		productionMultipliers = {},
+		productionMultipliers = PRODUCTION[id] or {},
 	}
 end
 local definitions: { [string]: Definition } = {
