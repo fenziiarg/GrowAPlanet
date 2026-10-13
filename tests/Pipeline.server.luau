@@ -9,7 +9,7 @@ local result = testEZ.TestBootstrap:run({ storage.GrowAPlanetTests.Specs })
 assert(result.failureCount == 0 and #result.errors == 0, "Unit tests failed")
 print(
 	string.format(
-		"[GrowAPlanet:Phase1] TESTS_PASS passed=%d failed=%d",
+		"[GrowAPlanet:Phase2] TESTS_PASS passed=%d failed=%d",
 		result.successCount,
 		result.failureCount
 	)
@@ -18,15 +18,19 @@ print(
 local debugTools = require(storage.GrowAPlanetTests.Debug)
 local bridge = Instance.new("BindableFunction")
 bridge.Name = "Control"
-bridge.OnInvoke = function(command: string, player: Player?, seconds: number?, clicks: number?): any
-	if command == "Inspect" and player then
-		return debugTools.inspect(player)
+bridge.OnInvoke = function(command: string, ...: any): any
+	local args = table.pack(...)
+	if command == "Inspect" then
+		return debugTools.inspect(args[1])
 	end
-	if command == "Skip" and player and seconds then
-		return debugTools.skip(player, seconds)
+	if command == "Skip" then
+		return debugTools.skip(args[1], args[2])
 	end
-	if command == "Simulate" and seconds and clicks then
-		return debugTools.simulate(seconds, clicks)
+	if command == "Grow" then
+		return debugTools.grow(args[1], args[2])
+	end
+	if command == "Simulate" then
+		return debugTools.simulate(args[1], args[2])
 	end
 	if command == "Persistence" then
 		return debugTools.persistence()

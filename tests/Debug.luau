@@ -5,6 +5,7 @@ local Shared = game:GetService("ReplicatedStorage").GrowAPlanet
 local Service = require(Server.Service)
 local Config = require(Shared.config.economy)
 local Economy = require(Shared.Economy)
+local Planet = require(Shared.Planet)
 local Big = require(Shared.BigNumber)
 local Schema = require(Server.ProfileSchema)
 local Session = require(Server.Session)
@@ -23,6 +24,12 @@ function Debug.skip(player: Player, seconds: number): boolean
 	)
 	return Service.advance(player, seconds)
 end
+function Debug.grow(player: Player, id: string): (boolean, string?)
+	assert(RunService:IsStudio(), "Debug tools require Studio")
+	return Service.grow(player, id)
+end
+-- Bot playthrough on fresh in-memory data (never a profile): click at a fixed rate and buy the
+-- growth the next stage still needs, cheapest first. Results are simulated, not human-verified.
 function Debug.simulate(seconds: number, clicksPerSecond: number): any
 	assert(RunService:IsStudio(), "Debug tools require Studio")
 	assert(
@@ -35,18 +42,51 @@ function Debug.simulate(seconds: number, clicksPerSecond: number): any
 			and clicksPerSecond % 1 == 0,
 		"Invalid click rate"
 	)
+	local definition = Planet.definition(ServerConfig.planetId)
 	local resources = Economy.initial()
-	for _ = 1, seconds do
-		resources = Economy.advance(resources, 1)
+	local state = Planet.initial()
+	local stageSeconds: { [string]: number } = { [definition.stages[1].id] = 0 }
+	for second = 1, seconds do
+		resources = Economy.advance(resources, 1, Planet.production(definition, state))
 		for _ = 1, clicksPerSecond do
 			resources = Economy.click(resources)
+		end
+		while true do
+			local stats = Planet.stats(definition, state)
+			local target = definition.stages[math.min(stats.stage + 1, #definition.stages)]
+			local best: string? = nil
+			local bestCost = nil
+			for _, id in definition.growthIds do
+				local needed = if id == "Earth"
+					then stats.earthMass < target.minimumEarthMass
+					else stats.waterMass < target.minimumWaterMass
+				local unlocked = stats.stage >= (Planet.growth(definition, id) :: any).unlockStage
+				if unlocked and (needed or stats.stage == #definition.stages) then
+					local cost = Planet.cost(definition, state, id)
+					if bestCost == nil or Big.compare(cost, bestCost) < 0 then
+						best, bestCost = id, cost
+					end
+				end
+			end
+			if best == nil then
+				break
+			end
+			local nextResources, nextState = Planet.grow(definition, resources, state, best :: any)
+			if nextResources == nil or nextState == nil then
+				break
+			end
+			resources, state = nextResources, nextState
+			local stage = definition.stages[Planet.stats(definition, state).stage].id
+			stageSeconds[stage] = stageSeconds[stage] or second
 		end
 	end
 	return {
 		simulated = true,
 		seconds = seconds,
 		clicksPerSecond = clicksPerSecond,
-		resources = resources,
+		stageSeconds = stageSeconds,
+		final = Planet.stats(definition, state),
+		growthPoints = Big.format(resources.GrowthPoints),
 	}
 end
 -- Real API acceptance test on a dedicated test key. Never uses the mock backend or player keys.

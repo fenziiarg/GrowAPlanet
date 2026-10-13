@@ -49,3 +49,9 @@ It shows only server-provided balances. No copied Check-UI code or external icon
 Device and interaction verification results are recorded in the Phase 1 report.
 
 Owner accepted the original Check-UI-inspired direction before Phase 1.
+
+Phase 2 splits the development HUD into a cyan-accented Planet panel (left: stage, Earth/Water Mass, Total Size,
+growth income, Add Earth/Add Water) and the Resources panel (right). Locked or unaffordable growth uses the silver
+disabled state with its reason or price, never a dead button. Stage-ups show a brief top-centre toast.
+Both panels are capped at 380x390 and take half the width each, which still covers the planet on phone-sized
+screens; the final responsive layout is Phase 5 work.

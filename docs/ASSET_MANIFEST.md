@@ -32,3 +32,9 @@ No external audio, textures, fonts, marketplace models or third-party UI images 
 Phase 1 UI: original source at src/client/Main.client.luau, authored for this project by Codex,
 using Roblox primitives and built-in Gotham fonts. No third-party runtime UI scripts or media imported.
 The Check-UI reference directory is now local/ignored at the owner's request; notes, source pin and licenses remain tracked.
+
+Phase 2 planet: original, built at runtime by src/client/PlanetView.luau from Roblox primitive Parts
+(Ball shapes and Block parts with a built-in Sphere SpecialMesh) and built-in materials (Slate, Basalt, Rock,
+Grass, Glacier, Neon, ForceField, SmoothPlastic). Colors and layout are in src/shared/config/planet.luau.
+No meshes, textures, decals, uploads or third-party models; no asset IDs. Phase 2 HUD and stage toast are
+original code in src/client/Hud.luau with built-in Gotham fonts.

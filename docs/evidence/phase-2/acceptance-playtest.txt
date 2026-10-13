@@ -1,0 +1,59 @@
+Phase 2 acceptance playtest — 2026-10-13 UTC (00:14–00:30), local Windows Studio, place 94365962623582.
+Rojo was not connected (connecting needs a click in the Studio plugin). The repo working tree was mirrored into
+Studio the same way Rojo maps it, then diffed: 23/23 scripts identical after newline normalization, run before
+both sessions. Driven through StudioMCP.exe (execute_luau, user_mouse_input, start_stop_play, screen_capture,
+get_console_output). Server state was read through the development-only bridge ServerStorage.GrowAPlanetTests.Control.
+Player user ID redacted.
+
+== Session 1 startup (existing schema v1 Studio record, 2,355.6 GP)
+38 passed, 0 failed, 0 skipped
+[GrowAPlanet:Phase2] TESTS_PASS passed=38 failed=0
+[ProfileStore]: Roblox API services available - data will be saved
+[GrowAPlanet] PROFILE_READY schema=2 namespace=GrowAPlanet_Studio_v1 stage=BarrenRock earth=0 water=0
+Inspect: live GP 2404.75 vs lastSaved (v1 record) 2355.56 — balances kept through the v1->v2 migration.
+Client model: Stage=1 TotalSize=1000 scale=0.400 | Core=1 Crater=11
+
+== Growth bought through real HUD clicks (user_mouse_input x3 on PlayerGui.GrowAPlanetHUD.Planet.AddEarth)
+before: earthLevel=0 earthMass=0 income=1/s costEarth=10 size=1000 km
+after:  earthLevel=3 earthMass=300 income=4/s costEarth=16.4 size=1587.4 km stats={grown=3}
+Client model rescaled: Stage=1 TotalSize=1587.4 scale=0.635
+
+== Invalid growth requests from the client datamodel
+("Grow","Water") at Barren Rock, ("Grow","Lava"), ("Grow","Earth",99), ("Grow",{id="Earth",levels=50}), ("Grow")
+-> stats={locked=1, malformed_intent=4}; levels unchanged (earthLevel=3, waterLevel=0)
+Console: [GrowAPlanet] REJECT locked / [GrowAPlanet] REJECT malformed_intent
+
+== Growth spam: 15 x ("Grow","Earth") in one frame
+-> 10 accepted (growth burst 10), stats growth_rate=5; earthLevel 3 -> 13
+Console: [GrowAPlanet] STAGE_UP Volcanic / [GrowAPlanet] REJECT growth_rate
+
+== Scripted live progression (Service.grow via bridge; Debug Skip only to fund purchases)
+Each purchase asserted: Earth/Water Mass never decrease, Total Size strictly increases, stage never drops.
+Each transition asserted: both configured minimums met now, and at least one was unmet before.
+-> Oceanic:    9 purchases, 0 s skipped.    STAGE 3 Oceanic at earth=1600 (min 1600) water=600 (min 600) size=2843.9km
+-> Habitable: 18 purchases, 43 s skipped.   STAGE 4 Habitable at earth=2600 (min 2600) water=1400 (min 1400) size=3448.2km
+-> Mature:    30 purchases, 1193 s skipped. STAGE 5 MatureWorld at earth=4200 (min 4200) water=2800 (min 2800) size=4140.8km
+(Volcanic was reached through the HUD and spam purchases above: earthLevel 8 = 800 = minimum.)
+
+== Rejoin (stop Play -> sync renderer change -> start Play)
+before stop (00:19:44): earthLevel=42 waterLevel=28 stage=5 size=4140.8 GP=3.5K income=71/s
+  (The session stayed in Play until ~00:25 while a hung get_console_output call was cancelled; income kept accruing.)
+after rejoin (00:26:05): lastSaved schema=2 growth={earthLevel=42, waterLevel=28}; live stage=5 size=4140.8 GP=26.9K
+[GrowAPlanet] PROFILE_READY schema=2 namespace=GrowAPlanet_Studio_v1 stage=MatureWorld earth=42 water=28
+Client model: Stage=5 TotalSize=4140.8 scale=1.656 | Atmosphere=1 Cloud=30 Core=1 Ice=2 Land=14 Ocean=1
+
+== Stage-up toast
+Server re-sent the real Notify remote ({kind="StageUp", stage=5}) once per second for 12 s; stage-up-toast.png
+shows the client toast. Live transitions printed STAGE_UP from the same Service.grow code that fires Notify.
+
+== Simulated pacing (Debug.simulate, bot on in-memory data; simulated, not human-verified)
+3 clicks/s: Volcanic 21 s, Oceanic 60 s, Habitable 172 s, Mature World 1154 s (19.2 min)
+0 clicks/s: Volcanic 41 s, Oceanic 88 s, Habitable 209 s, Mature World 1239 s (20.7 min)
+
+== Screenshots (same renderer, live progression)
+stage-1-barren-rock.png (wide), stage-1-barren-rock-close.png, stage-2-volcanic-close.png,
+stage-3-oceanic-close.png, stage-4-habitable-close.png, stage-5-mature-world-close.png,
+stage-5-mature-world-wide.png (wide; same camera as stage-1 wide), stage-up-toast.png.
+Close-up cameras sit 3.4 x the planet's visual radius away, so close-ups do not show relative size; the wide pair does.
+Stages 1-4 were captured before the Mature World cloud/land revision. That revision changed only Mature-only
+rendering (cloud sheets) and Mature config (land height/colour); the stage 5 images are from the final code.

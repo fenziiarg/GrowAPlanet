@@ -1,6 +1,7 @@
 # Grow a Planet
 
-Roblox progression simulator. Phase 1 adds the server resource engine, safe save sessions and a minimal test HUD.
+Roblox progression simulator. Phase 1 added the server resource engine, safe save sessions and a minimal test HUD.
+Phase 2 adds planet growth: Earth/Water purchases, five visual stages and an attribute-driven planet model.
 Read AGENTS.md, GAME_SPEC.md and PHASE_PROMPTS.md before working. Each phase requires owner approval.
 
 ## Development
@@ -17,7 +18,7 @@ Real Studio API access is required to join safely; there is no mock-save gamepla
 - `docs/SETUP.md`: versions, installation and verification instructions.
 - `docs/UI_NOTES.md`, `docs/ASSET_MANIFEST.md`: UI decisions and provenance.
 - `docs/ENGINE.md`: numeric precision, resource authority, save lifecycle and debug tools.
-- `docs/OWNER_SETUP.md`, `docs/reports/phase-0.md`: owner actions and phase evidence.
+- `docs/OWNER_SETUP.md`, `docs/reports/`: owner actions and per-phase evidence reports.
 
 The approved place is 94365962623582, universe 10770529946. Do not connect to another experience.
 Nothing in this repository authorizes public publication or purchases.

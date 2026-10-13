@@ -1,10 +1,181 @@
 --!strict
+export type Look = {
+	coreColor: Color3,
+	coreMaterial: Enum.Material,
+	craters: boolean,
+	lava: boolean,
+	-- Ocean shell radius as a fraction of the planet radius; nil hides the ocean.
+	oceanLevel: number?,
+	oceanColor: Color3,
+	-- Land blob summit height as a fraction of the planet radius; nil hides land masses.
+	landHeight: number?,
+	landColor: Color3,
+	landMaterial: Enum.Material,
+	ice: boolean,
+	clouds: boolean,
+	atmosphereColor: Color3?,
+}
 export type Stage = {
 	id: string,
+	name: string,
 	minimumEarthMass: number,
 	minimumWaterMass: number,
-	radius: number,
+	look: Look,
 }
-export type Definition = { id: string, stages: { Stage } }
-local definitions: { [string]: Definition } = {}
+export type Growth = {
+	id: string,
+	label: string,
+	baseCost: number,
+	costGrowth: number,
+	massPerLevel: number,
+	-- Extra Growth Points per second for each level bought.
+	incomePerLevel: number,
+	-- Stage index (1-based) required before this growth can be bought.
+	unlockStage: number,
+}
+export type Definition = {
+	id: string,
+	stages: { Stage },
+	growth: { Earth: Growth, Water: Growth },
+	growthIds: { string },
+	maxLevel: number,
+	baseSizeKm: number,
+	-- Total Size = baseSizeKm * (1 + (Earth Mass + Water Mass) / sizeMassStep) ^ (1/3).
+	sizeMassStep: number,
+	studsPerKm: number,
+	modelRadius: number,
+	viewCenter: Vector3,
+}
+
+local rock = Color3.fromRGB(122, 112, 104)
+local definitions: { [string]: Definition } = {
+	home = {
+		id = "home",
+		maxLevel = 1000,
+		baseSizeKm = 1000,
+		sizeMassStep = 100,
+		studsPerKm = 0.02,
+		modelRadius = 50,
+		viewCenter = Vector3.new(0, 170, -300),
+		growthIds = { "Earth", "Water" },
+		growth = {
+			Earth = {
+				id = "Earth",
+				label = "Earth",
+				baseCost = 10,
+				costGrowth = 1.18,
+				massPerLevel = 100,
+				incomePerLevel = 1,
+				unlockStage = 1,
+			},
+			Water = {
+				id = "Water",
+				label = "Water",
+				baseCost = 20,
+				costGrowth = 1.18,
+				massPerLevel = 100,
+				incomePerLevel = 1,
+				unlockStage = 2,
+			},
+		},
+		stages = {
+			{
+				id = "BarrenRock",
+				name = "Barren Rock",
+				minimumEarthMass = 0,
+				minimumWaterMass = 0,
+				look = {
+					coreColor = rock,
+					coreMaterial = Enum.Material.Slate,
+					craters = true,
+					lava = false,
+					oceanColor = Color3.new(),
+					landColor = rock,
+					landMaterial = Enum.Material.Slate,
+					ice = false,
+					clouds = false,
+				},
+			},
+			{
+				id = "Volcanic",
+				name = "Volcanic",
+				minimumEarthMass = 800,
+				minimumWaterMass = 0,
+				look = {
+					coreColor = Color3.fromRGB(46, 38, 38),
+					coreMaterial = Enum.Material.Basalt,
+					craters = false,
+					lava = true,
+					oceanColor = Color3.new(),
+					landColor = Color3.fromRGB(70, 52, 46),
+					landMaterial = Enum.Material.Basalt,
+					landHeight = 1.06,
+					ice = false,
+					clouds = false,
+					atmosphereColor = Color3.fromRGB(255, 120, 60),
+				},
+			},
+			{
+				id = "Oceanic",
+				name = "Oceanic",
+				minimumEarthMass = 1600,
+				minimumWaterMass = 600,
+				look = {
+					coreColor = Color3.fromRGB(60, 54, 50),
+					coreMaterial = Enum.Material.Basalt,
+					craters = false,
+					lava = false,
+					oceanLevel = 1.04,
+					oceanColor = Color3.fromRGB(34, 92, 170),
+					landHeight = 1.07,
+					landColor = Color3.fromRGB(96, 84, 74),
+					landMaterial = Enum.Material.Rock,
+					ice = false,
+					clouds = false,
+					atmosphereColor = Color3.fromRGB(150, 190, 230),
+				},
+			},
+			{
+				id = "Habitable",
+				name = "Habitable",
+				minimumEarthMass = 2600,
+				minimumWaterMass = 1400,
+				look = {
+					coreColor = Color3.fromRGB(60, 54, 50),
+					coreMaterial = Enum.Material.Basalt,
+					craters = false,
+					lava = false,
+					oceanLevel = 1.03,
+					oceanColor = Color3.fromRGB(38, 110, 190),
+					landHeight = 1.09,
+					landColor = Color3.fromRGB(96, 150, 70),
+					landMaterial = Enum.Material.Grass,
+					ice = true,
+					clouds = false,
+					atmosphereColor = Color3.fromRGB(130, 190, 255),
+				},
+			},
+			{
+				id = "MatureWorld",
+				name = "Mature World",
+				minimumEarthMass = 4200,
+				minimumWaterMass = 2800,
+				look = {
+					coreColor = Color3.fromRGB(60, 54, 50),
+					coreMaterial = Enum.Material.Basalt,
+					craters = false,
+					lava = false,
+					oceanLevel = 1.03,
+					oceanColor = Color3.fromRGB(30, 100, 185),
+					landHeight = 1.13,
+					landColor = Color3.fromRGB(64, 150, 58),
+					landMaterial = Enum.Material.Grass,
+					ice = true,
+					clouds = true,
+					atmosphereColor = Color3.fromRGB(120, 200, 255),
+				},
+			},
+		},
+	},
+}
 return table.freeze(definitions)

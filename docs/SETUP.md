@@ -1,4 +1,4 @@
-# Setup — Phase 1
+# Setup — Phase 2
 
 Verified on Windows on 2026-10-12 from the repository root.
 Git author is configured locally; use your own author name and email.
@@ -35,7 +35,7 @@ luau-lsp's CLI may emit a nonfatal file-watcher registration warning.
 `./scripts/serve.ps1 -Development` serves only localhost:34872. Connect the Rojo plugin in the approved place.
 Both mappings restrict servePlaceIds to 94365962623582 and do not manage Workspace.
 The development map adds TestEZ, unit specs, a Studio-only runner and server-only debug tools. Play prints
-`[GrowAPlanet:Phase1] TESTS_PASS` followed by the test counts when all assertions pass.
+`[GrowAPlanet:Phase2] TESTS_PASS` followed by the test counts when all assertions pass.
 The release mapping contains neither TestEZ nor the pipeline runner. Never publish a development build.
 Disconnect before switching projects. Studio source edits are not a replacement for repo edits.
 If another Rojo server occupies the port, use `./scripts/serve.ps1 -Development -Port 34873`

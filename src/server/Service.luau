@@ -7,6 +7,7 @@ local Shared = ReplicatedStorage.GrowAPlanet
 local Config = require(Shared.config.economy)
 local Economy = require(Shared.Economy)
 local Janitor = require(Shared.Janitor)
+local Planet = require(Shared.Planet)
 local Limiter = require(script.Parent.RateLimiter)
 local Schema = require(script.Parent.ProfileSchema)
 local Session = require(script.Parent.Session)
@@ -16,6 +17,7 @@ type Entry = {
 	profile: any,
 	requests: Limiter.Bucket,
 	clicks: Limiter.Bucket,
+	growths: Limiter.Bucket,
 	cleanup: () -> (),
 	lastTick: number,
 	lastSnapshot: number,
@@ -23,6 +25,7 @@ type Entry = {
 	stats: { [string]: number },
 }
 local Service = {}
+local definition = Planet.definition(ServerConfig.planetId)
 local entries: { [Player]: Entry } = {}
 local loading: { [Player]: boolean } = {}
 local closing = false
@@ -30,13 +33,41 @@ local started = false
 local lifetime = Janitor.new()
 local request: RemoteEvent
 local snapshot: RemoteEvent
+local notify: RemoteEvent
+
+local function home(entry: Entry): Schema.PlanetData
+	return entry.profile.Data.planets[ServerConfig.planetId]
+end
+
+-- Everything the client displays is derived here; the client never computes balances or costs.
+local function view(entry: Entry): any
+	local planet = home(entry)
+	local stats = Planet.stats(definition, planet.growth)
+	local costs = {}
+	for _, id in definition.growthIds do
+		costs[id] = Planet.cost(definition, planet.growth, id)
+	end
+	return {
+		resources = planet.resources,
+		planet = {
+			earthLevel = planet.growth.earthLevel,
+			waterLevel = planet.growth.waterLevel,
+			earthMass = stats.earthMass,
+			waterMass = stats.waterMass,
+			totalSize = stats.totalSize,
+			stage = stats.stage,
+			costs = costs,
+			income = Planet.production(definition, planet.growth),
+		},
+	}
+end
 
 local function send(player: Player, entry: Entry)
 	if player.Parent ~= Players or not entry.profile:IsActive() then
 		return
 	end
 	entry.lastSnapshot = os.clock()
-	snapshot:FireClient(player, entry.profile.Data.planets[ServerConfig.planetId].resources)
+	snapshot:FireClient(player, view(entry))
 end
 
 local function reject(entry: Entry, reason: string)
@@ -53,8 +84,13 @@ function Service.advance(player: Player, seconds: number): boolean
 	if not entry or not entry.profile:IsActive() then
 		return false
 	end
-	local planet = entry.profile.Data.planets[ServerConfig.planetId]
-	local ok, resources = pcall(Economy.advance, planet.resources, seconds)
+	local planet = home(entry)
+	local ok, resources = pcall(
+		Economy.advance,
+		planet.resources,
+		seconds,
+		Planet.production(definition, planet.growth)
+	)
 	if not ok then
 		reject(entry, "number_range")
 		return false
@@ -63,17 +99,51 @@ function Service.advance(player: Player, seconds: number): boolean
 	return true
 end
 
+-- Shared by the Grow remote intent and Studio debug tools; validation happens here.
+function Service.grow(player: Player, id: string): (boolean, string?)
+	local entry = entries[player]
+	if not entry or not entry.profile:IsActive() or closing then
+		return false, "no_session"
+	end
+	if id ~= "Earth" and id ~= "Water" then
+		reject(entry, "malformed_intent")
+		return false, "malformed_intent"
+	end
+	local planet = home(entry)
+	local before = Planet.stats(definition, planet.growth).stage
+	local ok, resources, growth, reason =
+		pcall(Planet.grow, definition, planet.resources, planet.growth, id)
+	if not ok then
+		reject(entry, "number_range")
+		return false, "number_range"
+	end
+	if resources == nil or growth == nil then
+		reject(entry, reason or "rejected")
+		return false, reason
+	end
+	planet.resources = resources
+	planet.growth = growth
+	entry.stats.grown = (entry.stats.grown or 0) + 1
+	local stats = Planet.stats(definition, growth)
+	if stats.stage > before then
+		local stage = definition.stages[stats.stage]
+		print("[GrowAPlanet] STAGE_UP " .. stage.id)
+		notify:FireClient(player, { kind = "StageUp", stage = stats.stage })
+	end
+	send(player, entry)
+	return true, nil
+end
+
 function Service.inspect(player: Player): any
 	local entry = entries[player]
 	if not entry then
 		return nil
 	end
-	return {
-		resources = entry.profile.Data.planets[ServerConfig.planetId].resources,
-		stats = table.clone(entry.stats),
-		active = entry.profile:IsActive(),
-		lastSaved = entry.profile.LastSavedData,
-	}
+	local result = view(entry)
+	result.stats = table.clone(entry.stats)
+	result.active = entry.profile:IsActive()
+	result.lastSaved = entry.profile.LastSavedData
+	return result
 end
 
 function Service.release(player: Player)
@@ -81,7 +151,7 @@ function Service.release(player: Player)
 	if not entry then
 		return
 	end
-	-- Commit remaining online time before releasing the session; no offline income in Phase 1.
+	-- Commit remaining online time before releasing the session; offline income is a later phase.
 	Service.advance(player, math.max(0, os.clock() - entry.lastTick))
 	entries[player] = nil
 	entry.profile:EndSession()
@@ -99,6 +169,9 @@ function Service.start()
 	snapshot = Instance.new("RemoteEvent")
 	snapshot.Name = "Snapshot"
 	snapshot.Parent = remotes
+	notify = Instance.new("RemoteEvent")
+	notify.Name = "Notify"
+	notify.Parent = remotes
 	remotes.Parent = ReplicatedStorage
 	lifetime.add(function()
 		remotes:Destroy()
@@ -154,6 +227,7 @@ function Service.start()
 			lastSnapshot = now,
 			requests = Limiter.new(Config.requestsPerSecond, Config.requestBurst, now),
 			clicks = Limiter.new(Config.clicksPerSecond, Config.clickBurst, now),
+			growths = Limiter.new(Config.growthPerSecond, Config.growthBurst, now),
 			lastWarning = {},
 			stats = {},
 		}
@@ -170,7 +244,17 @@ function Service.start()
 		janitor.add(function()
 			ended:Disconnect()
 		end)
-		print("[GrowAPlanet] PROFILE_READY schema=1 namespace=" .. store.Name)
+		local growth = home(entry).growth
+		print(
+			string.format(
+				"[GrowAPlanet] PROFILE_READY schema=%d namespace=%s stage=%s earth=%d water=%d",
+				profile.Data.schemaVersion,
+				store.Name,
+				Planet.stats(definition, growth).stageId,
+				growth.earthLevel,
+				growth.waterLevel
+			)
+		)
 		send(player, entry)
 	end
 	local incoming = request.OnServerEvent:Connect(function(player: Player, ...: any)
@@ -184,11 +268,20 @@ function Service.start()
 			return
 		end
 		local args = table.pack(...)
-		if args.n ~= 1 or (args[1] ~= "Click" and args[1] ~= "Ready") then
+		local intent = args[1]
+		if intent == "Grow" and args.n == 2 then
+			if not Limiter.take(entry.growths, now) then
+				reject(entry, "growth_rate")
+				return
+			end
+			Service.grow(player, args[2])
+			return
+		end
+		if args.n ~= 1 or (intent ~= "Click" and intent ~= "Ready") then
 			reject(entry, "malformed_intent")
 			return
 		end
-		if args[1] == "Ready" then
+		if intent == "Ready" then
 			if now - entry.lastSnapshot >= Config.snapshotInterval then
 				send(player, entry)
 			end
@@ -198,7 +291,7 @@ function Service.start()
 			reject(entry, "click_rate")
 			return
 		end
-		local planet = entry.profile.Data.planets[ServerConfig.planetId]
+		local planet = home(entry)
 		local ok, resources = pcall(Economy.click, planet.resources)
 		if not ok then
 			reject(entry, "number_range")

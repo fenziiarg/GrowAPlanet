@@ -73,7 +73,9 @@ scripts were checked byte-identical (after newline normalization) to the repo wo
   documented in `docs/ENGINE.md`.
 - **The debug bridge argument order** is `(command, player, seconds, clicks)`, so Simulate needs `nil` for player. It is a
   development-only API, not a bug in shipped code, but easy to misuse; I hit it once during testing.
-- **Development test traffic changed this account's Studio-namespace profile** (now around 1.1K GP after a 600 s skip).
+- **Development test traffic changed this account's Studio-namespace profile.** Correction found in Phase 2:
+  it ended at 2,355.6 GP, not about 1.1K. Two failed debug-script attempts each applied the 600 s skip before
+  erroring, so three skips ran.
   It also left one `Acceptance_…` key in the Studio namespace. Live data is untouched.
 - **The Studio MCP is registered for Codex, not Claude Code.** This session drove `StudioMCP.exe` through a
   stdio client. It is now also registered with Claude Code for this project (`claude mcp add … Roblox_Studio`).

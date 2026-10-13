@@ -23,6 +23,8 @@ return table.freeze({
 	clickGrowth = 1,
 	clicksPerSecond = 8,
 	clickBurst = 8,
+	growthPerSecond = 6,
+	growthBurst = 10,
 	requestsPerSecond = 12,
 	requestBurst = 16,
 	snapshotInterval = 0.25,
