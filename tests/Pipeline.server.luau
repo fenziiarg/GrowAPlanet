@@ -9,7 +9,7 @@ local result = testEZ.TestBootstrap:run({ storage.GrowAPlanetTests.Specs })
 assert(result.failureCount == 0 and #result.errors == 0, "Unit tests failed")
 print(
 	string.format(
-		"[GrowAPlanet:Phase2] TESTS_PASS passed=%d failed=%d",
+		"[GrowAPlanet:Phase3] TESTS_PASS passed=%d failed=%d",
 		result.successCount,
 		result.failureCount
 	)
@@ -25,6 +25,12 @@ bridge.OnInvoke = function(command: string, ...: any): any
 	end
 	if command == "Skip" then
 		return debugTools.skip(args[1], args[2])
+	end
+	if command == "SetGrowth" then
+		return debugTools.setGrowth(args[1], args[2], args[3])
+	end
+	if command == "SetPopulation" then
+		return debugTools.setPopulation(args[1], args[2], args[3])
 	end
 	if command == "Grow" then
 		return debugTools.grow(args[1], args[2])

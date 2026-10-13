@@ -1,17 +1,6 @@
 --!strict
+-- Stage-wide layers drawn above the region surface; terrain colours live in config/terrain.
 export type Look = {
-	coreColor: Color3,
-	coreMaterial: Enum.Material,
-	craters: boolean,
-	lava: boolean,
-	-- Ocean shell radius as a fraction of the planet radius; nil hides the ocean.
-	oceanLevel: number?,
-	oceanColor: Color3,
-	-- Land blob summit height as a fraction of the planet radius; nil hides land masses.
-	landHeight: number?,
-	landColor: Color3,
-	landMaterial: Enum.Material,
-	ice: boolean,
 	clouds: boolean,
 	atmosphereColor: Color3?,
 }
@@ -47,7 +36,6 @@ export type Definition = {
 	viewCenter: Vector3,
 }
 
-local rock = Color3.fromRGB(122, 112, 104)
 local definitions: { [string]: Definition } = {
 	home = {
 		id = "home",
@@ -56,7 +44,7 @@ local definitions: { [string]: Definition } = {
 		sizeMassStep = 100,
 		studsPerKm = 0.02,
 		modelRadius = 50,
-		viewCenter = Vector3.new(0, 170, -300),
+		viewCenter = Vector3.new(0, 2000, 0),
 		growthIds = { "Earth", "Water" },
 		growth = {
 			Earth = {
@@ -85,14 +73,6 @@ local definitions: { [string]: Definition } = {
 				minimumEarthMass = 0,
 				minimumWaterMass = 0,
 				look = {
-					coreColor = rock,
-					coreMaterial = Enum.Material.Slate,
-					craters = true,
-					lava = false,
-					oceanColor = Color3.new(),
-					landColor = rock,
-					landMaterial = Enum.Material.Slate,
-					ice = false,
 					clouds = false,
 				},
 			},
@@ -102,15 +82,6 @@ local definitions: { [string]: Definition } = {
 				minimumEarthMass = 800,
 				minimumWaterMass = 0,
 				look = {
-					coreColor = Color3.fromRGB(46, 38, 38),
-					coreMaterial = Enum.Material.Basalt,
-					craters = false,
-					lava = true,
-					oceanColor = Color3.new(),
-					landColor = Color3.fromRGB(70, 52, 46),
-					landMaterial = Enum.Material.Basalt,
-					landHeight = 1.06,
-					ice = false,
 					clouds = false,
 					atmosphereColor = Color3.fromRGB(255, 120, 60),
 				},
@@ -121,16 +92,6 @@ local definitions: { [string]: Definition } = {
 				minimumEarthMass = 1600,
 				minimumWaterMass = 600,
 				look = {
-					coreColor = Color3.fromRGB(60, 54, 50),
-					coreMaterial = Enum.Material.Basalt,
-					craters = false,
-					lava = false,
-					oceanLevel = 1.04,
-					oceanColor = Color3.fromRGB(34, 92, 170),
-					landHeight = 1.07,
-					landColor = Color3.fromRGB(96, 84, 74),
-					landMaterial = Enum.Material.Rock,
-					ice = false,
 					clouds = false,
 					atmosphereColor = Color3.fromRGB(150, 190, 230),
 				},
@@ -141,16 +102,6 @@ local definitions: { [string]: Definition } = {
 				minimumEarthMass = 2600,
 				minimumWaterMass = 1400,
 				look = {
-					coreColor = Color3.fromRGB(60, 54, 50),
-					coreMaterial = Enum.Material.Basalt,
-					craters = false,
-					lava = false,
-					oceanLevel = 1.03,
-					oceanColor = Color3.fromRGB(38, 110, 190),
-					landHeight = 1.09,
-					landColor = Color3.fromRGB(96, 150, 70),
-					landMaterial = Enum.Material.Grass,
-					ice = true,
 					clouds = false,
 					atmosphereColor = Color3.fromRGB(130, 190, 255),
 				},
@@ -161,16 +112,6 @@ local definitions: { [string]: Definition } = {
 				minimumEarthMass = 4200,
 				minimumWaterMass = 2800,
 				look = {
-					coreColor = Color3.fromRGB(60, 54, 50),
-					coreMaterial = Enum.Material.Basalt,
-					craters = false,
-					lava = false,
-					oceanLevel = 1.03,
-					oceanColor = Color3.fromRGB(30, 100, 185),
-					landHeight = 1.13,
-					landColor = Color3.fromRGB(64, 150, 58),
-					landMaterial = Enum.Material.Grass,
-					ice = true,
 					clouds = true,
 					atmosphereColor = Color3.fromRGB(120, 200, 255),
 				},

@@ -1,6 +1,6 @@
 --!strict
 return table.freeze({
-	schemaVersion = 2,
+	schemaVersion = 3,
 	studioStore = "GrowAPlanet_Studio_v1",
 	liveStore = "GrowAPlanet_Live_v1",
 	keyPrefix = "Player_",

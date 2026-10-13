@@ -14,7 +14,7 @@ Invoke-Check 'rojo' @('build', 'dev.project.json', '--output', 'build/GrowAPlane
 [xml]$release = Get-Content 'build/GrowAPlanet.rbxlx' -Raw
 $scripts = @($release.SelectNodes('//Item[@class="Script" or @class="LocalScript"]'))
 if ($scripts.Count -ne 2) { throw 'Expected server and client entry points only' }
-$testModules = @($release.SelectNodes('//string[@name="Name" and (text()="TestEZ" or text()="GrowAPlanetPipeline" or text()="Debug" or text()="Specs")]'))
+$testModules = @($release.SelectNodes('//string[@name="Name" and (text()="TestEZ" or text()="GrowAPlanetPipeline" or text()="GrowAPlanetClientDebug" or text()="Debug" or text()="Specs")]'))
 if ($testModules.Count -ne 0) { throw 'Development test content leaked into release' }
 if ((Get-FileHash 'vendor/ProfileStore/ProfileStore.luau').Hash -ne 'AD43737203688B8E88CAB34EBE8C483000C157E53BFB41E35F1B49EE89D0C95F') { throw 'ProfileStore source changed' }
 Write-Output 'CHECKS_PASS: formatting, lint, types, both builds, release isolation, vendor hash'

@@ -1,7 +1,8 @@
 # Grow a Planet
 
 Roblox progression simulator. Phase 1 added the server resource engine, safe save sessions and a minimal test HUD.
-Phase 2 adds planet growth: Earth/Water purchases, five visual stages and an attribute-driven planet model.
+Phase 2 added planet growth: Earth/Water purchases, five visual stages and an attribute-driven planet model.
+Phase 3 adds the strategic view: 252 raycast-picked regions, generated terrain and a trackball camera.
 Read AGENTS.md, GAME_SPEC.md and PHASE_PROMPTS.md before working. Each phase requires owner approval.
 
 ## Development

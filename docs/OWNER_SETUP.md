@@ -10,7 +10,8 @@
 
 - [x] Owner approved Phase 1, the original UI direction, vendored ProfileStore and existing experience.
 - [x] Owner approved the Phase 1 report on 2026-10-13; Phase 2 started.
-- [ ] Review and approve docs/reports/phase-2.md before Phase 3.
+- [x] Owner approved the Phase 2 report on 2026-10-13 and reconnected Rojo (development mapping, port 34872).
+- [ ] Review and approve docs/reports/phase-3.md before Phase 4.
 - [x] **Enable Studio Access to API Services** was observed enabled on 2026-10-12 (ProfileStore reported
   API services available during Phase 1 acceptance). This agent did not change the setting. Studio can access
   live experience data, so code keeps Studio saves in the separate `GrowAPlanet_Studio_v1` namespace.

@@ -136,8 +136,8 @@ return function()
 			planets = { home = { resources = Economy.initial() } },
 		}
 		v1.planets.home.resources.GrowthPoints = Big.new(42)
-		local upgraded = Schema.upgrade(v1)
-		assert(upgraded ~= nil and upgraded.schemaVersion == 2, "upgraded")
+		local upgraded = Schema.upgrade(v1, 123)
+		assert(upgraded ~= nil and upgraded.schemaVersion == 3, "upgraded")
 		assert((upgraded :: any).planets.home.growth.earthLevel == 0, "growth added")
 		assert(
 			Big.compare((upgraded :: any).planets.home.resources.GrowthPoints, Big.new(42)) == 0,
@@ -162,7 +162,7 @@ return function()
 		end, function()
 			return false
 		end)
-		assert(profile == fake and data.schemaVersion == 2, "migrated in place")
+		assert(profile == fake and data.schemaVersion == 3, "migrated in place")
 		assert(
 			Big.compare(data.planets.home.resources.GrowthPoints, Big.new(7)) == 0,
 			"balance kept"
@@ -171,9 +171,9 @@ return function()
 
 	it("rejects a malformed v1 profile and a corrupt v2 growth record", function()
 		local v1 = { schemaVersion = 1, planets = { home = { resources = { GrowthPoints = 5 } } } }
-		assert(Schema.upgrade(v1) == nil, "malformed v1")
+		assert(Schema.upgrade(v1, 123) == nil, "malformed v1")
 		local v2 = Schema.new()
 		v2.planets.home.growth.earthLevel = -3
-		assert(Schema.upgrade(v2) == nil, "corrupt v2")
+		assert(Schema.upgrade(v2, 123) == nil, "corrupt growth")
 	end)
 end

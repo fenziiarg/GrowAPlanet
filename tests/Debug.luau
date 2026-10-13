@@ -24,6 +24,38 @@ function Debug.skip(player: Player, seconds: number): boolean
 	)
 	return Service.advance(player, seconds)
 end
+-- Studio-namespace test data only: jump the planet to given growth levels (for stage screenshots).
+function Debug.setGrowth(player: Player, earthLevel: number, waterLevel: number): boolean
+	assert(RunService:IsStudio(), "Debug tools require Studio")
+	local planet = Service.studioData(player)
+	local definition = Planet.definition(ServerConfig.planetId)
+	local state = { earthLevel = earthLevel, waterLevel = waterLevel }
+	assert(planet ~= nil and Planet.valid(definition, state), "Invalid growth levels")
+	planet.growth = state
+	Service.studioRefresh(player)
+	print(string.format("[GrowAPlanet:Debug] SET_GROWTH earth=%d water=%d", earthLevel, waterLevel))
+	return true
+end
+-- Studio-namespace test data only: give one region a population to prove region data persists.
+function Debug.setPopulation(player: Player, regionId: number, population: number): boolean
+	assert(RunService:IsStudio(), "Debug tools require Studio")
+	local planet = Service.studioData(player)
+	assert(planet ~= nil, "No active session")
+	local data = table.clone(planet.regions)
+	data.population = table.clone(data.population)
+	data.population[tostring(regionId)] = population
+	assert(Schema.validRegions(ServerConfig.planetId, data), "Invalid region data")
+	planet.regions = data
+	Service.studioRefresh(player)
+	print(
+		string.format(
+			"[GrowAPlanet:Debug] SET_POPULATION region=%d population=%d",
+			regionId,
+			population
+		)
+	)
+	return true
+end
 function Debug.grow(player: Player, id: string): (boolean, string?)
 	assert(RunService:IsStudio(), "Debug tools require Studio")
 	return Service.grow(player, id)

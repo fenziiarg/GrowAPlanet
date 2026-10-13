@@ -38,3 +38,8 @@ Phase 2 planet: original, built at runtime by src/client/PlanetView.luau from Ro
 Grass, Glacier, Neon, ForceField, SmoothPlastic). Colors and layout are in src/shared/config/planet.luau.
 No meshes, textures, decals, uploads or third-party models; no asset IDs. Phase 2 HUD and stage toast are
 original code in src/client/Hud.luau with built-in Gotham fonts.
+
+Phase 3 region map: original, generated at runtime from WedgeParts (src/client/PlanetView.luau) using the
+Goldberg topology in src/shared/RegionTopology.luau and built-in materials (Slate, Basalt, Neon, SmoothPlastic,
+Grass, Sand, Rock, Glacier). Borders use a built-in WireframeHandleAdornment; highlights use Highlight instances.
+No meshes, textures, uploads, third-party code or asset IDs.

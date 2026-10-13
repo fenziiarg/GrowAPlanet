@@ -55,3 +55,7 @@ growth income, Add Earth/Add Water) and the Resources panel (right). Locked or u
 disabled state with its reason or price, never a dead button. Stage-ups show a brief top-centre toast.
 Both panels are capped at 380x390 and take half the width each, which still covers the planet on phone-sized
 screens; the final responsive layout is Phase 5 work.
+
+Phase 3 adds a placeholder region panel at the bottom centre (region ID, terrain, population; 44 px close button)
+and a controls hint shown while nothing is selected. Hover uses a white Highlight and selection a gold one.
+Pointer hover is ignored over UI, so panels never pick regions behind them.

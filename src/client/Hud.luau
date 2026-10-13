@@ -20,6 +20,9 @@ export type Hud = {
 	stageUp: (stage: number) -> (),
 	onClick: (callback: () -> ()) -> (),
 	onGrow: (callback: (id: string) -> ()) -> (),
+	-- Placeholder region panel (Phase 3): nil hides it.
+	showRegion: (info: { id: number, terrain: string, population: number }?) -> (),
+	onRegionClose: (callback: () -> ()) -> (),
 	destroy: () -> (),
 }
 local Hud = {}
@@ -151,6 +154,62 @@ function Hud.new(playerGui: Instance, planetId: string): Hud
 	end
 	local clickButton = button(resourcePanel, "Grow", 16)
 
+	-- Region panel (bottom centre) and the controls hint shown when nothing is selected.
+	local regionPanel = Instance.new("Frame")
+	regionPanel.Name = "Region"
+	regionPanel.AnchorPoint = Vector2.new(0.5, 1)
+	regionPanel.Position = UDim2.new(0.5, 0, 1, -16)
+	regionPanel.Size = UDim2.fromOffset(300, 112)
+	regionPanel.BackgroundColor3 = SLATE
+	regionPanel.BorderSizePixel = 0
+	regionPanel.Visible = false
+	regionPanel.Parent = gui
+	round(regionPanel, 10)
+	local regionStroke = Instance.new("UIStroke")
+	regionStroke.Color = BORDER
+	regionStroke.Thickness = 3
+	regionStroke.Parent = regionPanel
+	local regionTitle = label(regionPanel, "Title", "REGION", 12, 18)
+	regionTitle.Font = Enum.Font.GothamBlack
+	regionTitle.Size = UDim2.new(1, -76, 0, ROW)
+	local regionTerrain = label(regionPanel, "Terrain", "", 44, 16)
+	regionTerrain.TextColor3 = CYAN
+	local regionPopulation = label(regionPanel, "Population", "", 72, 16)
+	local closeRegion = Instance.new("TextButton")
+	closeRegion.Name = "Close"
+	closeRegion.AnchorPoint = Vector2.new(1, 0)
+	closeRegion.Position = UDim2.new(1, -10, 0, 10)
+	closeRegion.Size = UDim2.fromOffset(44, 44)
+	closeRegion.BackgroundColor3 = BORDER
+	closeRegion.TextColor3 = TEXT
+	closeRegion.Font = Enum.Font.GothamBlack
+	closeRegion.TextSize = 20
+	closeRegion.Text = "X"
+	closeRegion.Parent = regionPanel
+	round(closeRegion, 8)
+	local hint = Instance.new("TextLabel")
+	hint.Name = "ControlsHint"
+	hint.AnchorPoint = Vector2.new(0.5, 1)
+	hint.Position = UDim2.new(0.5, 0, 1, -16)
+	hint.Size = UDim2.fromOffset(420, 28)
+	hint.BackgroundColor3 = BORDER
+	hint.BackgroundTransparency = 0.25
+	hint.TextColor3 = TEXT
+	hint.Font = Enum.Font.GothamBold
+	hint.TextSize = 14
+	hint.Text = "Drag to rotate • Scroll, pinch or Q/E to zoom • Click a region"
+	hint.Parent = gui
+	round(hint, 8)
+	local closeCallbacks: { () -> () } = {}
+	local closed = closeRegion.Activated:Connect(function()
+		for _, callback in closeCallbacks do
+			callback()
+		end
+	end)
+	janitor.add(function()
+		closed:Disconnect()
+	end)
+
 	-- Stage-up toast (top centre).
 	local toast = Instance.new("TextLabel")
 	toast.Name = "StageToast"
@@ -265,6 +324,18 @@ function Hud.new(playerGui: Instance, planetId: string): Hud
 				toast.Visible = false
 			end
 		end)
+	end
+	function hud.showRegion(info: { id: number, terrain: string, population: number }?)
+		regionPanel.Visible = info ~= nil
+		hint.Visible = info == nil
+		if info then
+			regionTitle.Text = "REGION #" .. info.id
+			regionTerrain.Text = "Terrain   " .. info.terrain
+			regionPopulation.Text = "Population   " .. Big.format(Big.new(info.population))
+		end
+	end
+	function hud.onRegionClose(callback: () -> ())
+		table.insert(closeCallbacks, callback)
 	end
 	function hud.onClick(callback: () -> ())
 		table.insert(clickCallbacks, callback)

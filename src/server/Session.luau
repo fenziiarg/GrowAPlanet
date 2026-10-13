@@ -2,7 +2,8 @@
 local Schema = require(script.Parent.ProfileSchema)
 local Session = {}
 -- Injectable loader for deterministic failure tests. Never falls back to empty defaults.
-function Session.load(load: () -> any, cancelled: () -> boolean): (any?, string?)
+-- `seed` initializes the regions of a new or pre-region planet; it is ignored otherwise.
+function Session.load(load: () -> any, cancelled: () -> boolean, seed: number?): (any?, string?)
 	local ok, profile = pcall(load)
 	if not ok or profile == nil then
 		return nil, "load_failed"
@@ -11,7 +12,7 @@ function Session.load(load: () -> any, cancelled: () -> boolean): (any?, string?
 		profile:EndSession()
 		return nil, "cancelled"
 	end
-	local upgraded = Schema.upgrade(profile.Data)
+	local upgraded = Schema.upgrade(profile.Data, seed or Random.new():NextInteger(1, 2 ^ 31 - 2))
 	if upgraded == nil then
 		profile:EndSession()
 		return nil, "invalid_schema"

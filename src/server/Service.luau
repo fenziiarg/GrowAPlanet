@@ -49,6 +49,11 @@ local function view(entry: Entry): any
 	end
 	return {
 		resources = planet.resources,
+		regions = {
+			terrain = planet.regions.terrain,
+			population = planet.regions.population,
+			buildings = planet.regions.buildings,
+		},
 		planet = {
 			earthLevel = planet.growth.earthLevel,
 			waterLevel = planet.growth.waterLevel,
@@ -123,6 +128,7 @@ function Service.grow(player: Player, id: string): (boolean, string?)
 	end
 	planet.resources = resources
 	planet.growth = growth
+	planet.regions.terrain = Schema.terrainFor(ServerConfig.planetId, planet)
 	entry.stats.grown = (entry.stats.grown or 0) + 1
 	local stats = Planet.stats(definition, growth)
 	if stats.stage > before then
@@ -132,6 +138,24 @@ function Service.grow(player: Player, id: string): (boolean, string?)
 	end
 	send(player, entry)
 	return true, nil
+end
+
+-- Studio-only access for development tools; never reachable from a remote.
+function Service.studioData(player: Player): Schema.PlanetData?
+	assert(RunService:IsStudio(), "Studio only")
+	local entry = entries[player]
+	return if entry and entry.profile:IsActive() then home(entry) else nil
+end
+
+-- Studio-only: re-derive terrain after a development edit and push a snapshot.
+function Service.studioRefresh(player: Player)
+	assert(RunService:IsStudio(), "Studio only")
+	local entry = entries[player]
+	if entry and entry.profile:IsActive() then
+		local planet = home(entry)
+		planet.regions.terrain = Schema.terrainFor(ServerConfig.planetId, planet)
+		send(player, entry)
+	end
 end
 
 function Service.inspect(player: Player): any
@@ -161,6 +185,8 @@ end
 function Service.start()
 	assert(not started, "Service already started")
 	started = true
+	-- The strategic planet view replaces avatars; no character is spawned.
+	Players.CharacterAutoLoads = false
 	local remotes = Instance.new("Folder")
 	remotes.Name = "GrowAPlanetRemotes"
 	request = Instance.new("RemoteEvent")
@@ -208,7 +234,7 @@ function Service.start()
 				ServerConfig.keyPrefix .. tostring(player.UserId),
 				{ Cancel = cancelled }
 			)
-		end, cancelled)
+		end, cancelled, Random.new():NextInteger(1, 2 ^ 31 - 2))
 		loading[player] = nil
 		if not profile then
 			warn("[GrowAPlanet] LOAD_FAILED " .. tostring(reason) .. "; no defaults written")
@@ -247,12 +273,13 @@ function Service.start()
 		local growth = home(entry).growth
 		print(
 			string.format(
-				"[GrowAPlanet] PROFILE_READY schema=%d namespace=%s stage=%s earth=%d water=%d",
+				"[GrowAPlanet] PROFILE_READY schema=%d namespace=%s stage=%s earth=%d water=%d regions=%d",
 				profile.Data.schemaVersion,
 				store.Name,
 				Planet.stats(definition, growth).stageId,
 				growth.earthLevel,
-				growth.waterLevel
+				growth.waterLevel,
+				#home(entry).regions.terrain
 			)
 		)
 		send(player, entry)

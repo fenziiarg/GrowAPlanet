@@ -52,6 +52,9 @@
         "$ignoreUnknownInstances": true,
         "GrowAPlanet": {
           "$path": "src/client"
+        },
+        "GrowAPlanetClientDebug": {
+          "$path": "tests/ClientDebug.client.luau"
         }
       }
     }

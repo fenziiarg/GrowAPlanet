@@ -207,7 +207,8 @@ return function()
 		)
 	end)
 	it("rejects malformed saved balances", function()
-		local data = Schema.new()
+		local data = Schema.upgrade(Schema.new(), 123) :: any
+		assert(Schema.validate(data), "initialized profile is valid")
 		data.planets.home.resources.Money.m = math.huge
 		assert(not Schema.validate(data), "not Schema.validate(data)")
 	end)
